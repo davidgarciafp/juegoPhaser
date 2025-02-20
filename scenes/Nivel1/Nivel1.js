@@ -77,10 +77,16 @@ export class Nivel1 extends Phaser.Scene {
             this.mario.anims.play('mario-walk', true);
             this.mario.x -= 5;
             this.mario.flipX = true;
+            if(this.keys.shift.isDown && this.mario.body.touching.down){
+                this.mario.x -= 5;
+            }
         } else if (this.keys.right.isDown) {
             this.mario.anims.play('mario-walk', true);
             this.mario.x += 5;
             this.mario.flipX = false;
+            if(this.keys.shift.isDown && this.mario.body.touching.down){
+                this.mario.x += 5;
+            }
         } else {
             this.mario.anims.play('mario-idle', true);
         }
@@ -110,5 +116,14 @@ export class Nivel1 extends Phaser.Scene {
         }
 
         this.goomba.anims.play('goomba-walk', true);
+
+        if(this.keys.up.isDown && this.keys.shift.isDown && this.keys.right.isDown){
+            this.mario.x += 5;
+            this.sound.add('jump', { volume: 0.1 }).play();
+        }
+        if(this.keys.up.isDown && this.keys.shift.isDown && this.keys.left.isDown){
+            this.mario.x -= 5;
+            this.sound.add('jump', { volume: 0.1 }).play(); 
+        }
     }
 }

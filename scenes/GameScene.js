@@ -9,7 +9,7 @@ export class GameScene extends Phaser.Scene {
     }
     create() {
         this.scene.start('Nivel1');
-        this.scene.start('Nivel2');
+        //this.scene.start('Nivel2');
 
     }
 

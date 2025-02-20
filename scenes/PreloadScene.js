@@ -4,6 +4,8 @@ export class PreloadScene extends Phaser.Scene {
     }
 
     preload() {
+
+        //mundo1
         this.load.image('cloud1', 'assets/scenery/overworld/cloud1.png');
         this.load.image('floorbricks', 'assets/scenery/overworld/floorbricks.png');
         this.load.image('block', 'assets/blocks/overworld/block.png');
