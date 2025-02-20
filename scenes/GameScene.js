@@ -1,4 +1,4 @@
-import { createAnimations } from "../animations.js";
+import { createAnimations } from "../animations/animations.js";
 import { createMario } from "../entities/Mario.js";
 import { createGoomba } from "../entities/Goomba.js";
 
@@ -47,8 +47,6 @@ export class GameScene extends Phaser.Scene {
 
         this.goomba = createGoomba(this, 1500, this.sys.game.config.height - 100);
 
-        // Reproducir animación después de crear el Goomba
-        this.goomba.anims.play('goomba-walk', true);
 
 
 
@@ -80,7 +78,6 @@ export class GameScene extends Phaser.Scene {
         
         this.physics.add.collider(this.goomba, this.blocks)
 
-        this.p
         createAnimations(this);
         this.keys = this.input.keyboard.createCursorKeys();
         this.sound.add('theme', { volume: 0.5, loop: true }).play();
