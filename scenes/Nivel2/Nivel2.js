@@ -1,4 +1,4 @@
-import { createAnimations } from "../../animations/animations.js";
+import { createAnimations } from "../../gameMechanics/animations.js";
 import { createMario } from "../../entities/Mario.js";
 import { createGoomba } from "../../entities/Goomba.js";
 

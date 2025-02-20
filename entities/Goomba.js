@@ -7,6 +7,7 @@ export function createGoomba(scene, x, y) {
     // Velocidad inicial
     goomba.setVelocityX(-50); // Se mueve hacia la izquierda
     goomba.body.setBounce(1, 0); // Rebota en los bordes
+    goomba.body.setSize(goomba.width, goomba.height, false);
 
 
     return goomba;

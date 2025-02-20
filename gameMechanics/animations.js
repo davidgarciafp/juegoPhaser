@@ -1,4 +1,5 @@
 export const createAnimations = (game) => {
+    console.log("animaciones");
     game.anims.create({
         key:'mario-walk',
         frames: game.anims.generateFrameNumbers(
@@ -27,5 +28,13 @@ export const createAnimations = (game) => {
         frames: game.anims.generateFrameNumbers('goomba', { start: 0, end: 1 }),
         frameRate: 5,
         repeat: -1
+    });
+
+    game.anims.create({
+        key: 'goomba-dead',
+        frames: [{ key: 'goomba', frame: 2 }], // Solo un frame de muerte
+        frameRate: 10,
+        repeat: 0 // No se repite
+
     });
 }
