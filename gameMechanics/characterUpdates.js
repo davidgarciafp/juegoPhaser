@@ -1,25 +1,25 @@
 export const updateCharacterBehaviors = (scene) => {
-    console.log("charactersupdate");
     const { mario, goomba } = scene;
 
     // Movimiento de Mario
     if (mario.isDead) return;
 
     if (scene.keys.left.isDown) {
+        mario.setVelocityX(-150);
         mario.anims.play('mario-walk', true);
-        mario.x -= 5;
         mario.flipX = true;
         if (scene.keys.shift.isDown && mario.body.touching.down) {
-            mario.x -= 5;
+            mario.setVelocityX(-250);
         }
     } else if (scene.keys.right.isDown) {
+        mario.setVelocityX(150);
         mario.anims.play('mario-walk', true);
-        mario.x += 5;
         mario.flipX = false;
         if (scene.keys.shift.isDown && mario.body.touching.down) {
-            mario.x += 5;
+            mario.setVelocityX(250);
         }
     } else {
+        mario.setVelocityX(0);
         mario.anims.play('mario-idle', true);
     }
 
@@ -49,10 +49,10 @@ export const updateCharacterBehaviors = (scene) => {
 
     // Comportamiento especial de Mario con shift + flechas
     if (scene.keys.up.isDown && scene.keys.shift.isDown && scene.keys.right.isDown) {
-        mario.x += 5;
+        mario.setVelocityX(250);
     }
     if (scene.keys.up.isDown && scene.keys.shift.isDown && scene.keys.left.isDown) {
-        mario.x -= 5;
+        mario.setVelocityX(-250);
     }
 
     

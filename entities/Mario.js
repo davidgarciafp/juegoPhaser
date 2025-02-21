@@ -5,6 +5,8 @@ export function createMario(scene) {
         .setScale(3)
         .setCollideWorldBounds(true)
         .setGravityY(300);
+
+        mario.isDead = false;
         
         scene.physics.world.setBounds(0, 0, 100000, scene.sys.game.config.height);
         scene.cameras.main.setBounds(0, 0, 100000, scene.sys.game.config.height);

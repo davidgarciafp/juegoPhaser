@@ -1,5 +1,4 @@
 export const createAnimations = (game) => {
-    console.log("animaciones");
     game.anims.create({
         key:'mario-walk',
         frames: game.anims.generateFrameNumbers(

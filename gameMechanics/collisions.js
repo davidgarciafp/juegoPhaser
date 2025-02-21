@@ -1,5 +1,4 @@
 export const handleCollisions = (scene) => {
-    console.log("collisions");
     
     const { mario, goomba } = scene;
 
@@ -24,10 +23,10 @@ export const handleCollisions = (scene) => {
 
                 // Desactivar el Goomba después de la animación de muerte (500ms para ver la animación)
                 setTimeout(() => {
-                    goomba.setActive(false).setVisible(false); // Desactivar y ocultar el Goomba muerto
+                    goomba.destroy(); // Eliminar el Goomba de la escena
                 }, 500); // Desaparece después de 500ms
             }
-        } else if(!mario.isDead) {
+        } else if(!mario.isDead) {  
             // Si Mario no está muerto, se mata al
             // chocar con el Goomba desde cualquier otro lado   
 
