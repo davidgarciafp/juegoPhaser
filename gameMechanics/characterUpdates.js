@@ -1,5 +1,5 @@
 export const updateCharacterBehaviors = (scene) => {
-    const { mario, goomba } = scene;
+    const { mario, goombas } = scene;
 
     // Movimiento de Mario
     if (mario.isDead) return;
@@ -57,7 +57,9 @@ export const updateCharacterBehaviors = (scene) => {
 
     
     // Movimiento de Goomba
-    if(!goomba.isDead){
-        goomba.anims.play('goomba-walk', true);
-    }
+    goombas.children.iterate((goomba) => {
+        if (!goomba.isDead) {
+            goomba.anims.play('goomba-walk', true);
+        }
+    });
 };

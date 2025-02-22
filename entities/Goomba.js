@@ -1,14 +1,20 @@
-export function createGoomba(scene, x, y) {
-    const goomba = scene.physics.add.sprite(x, y, 'goomba')
-        .setSize(14, 16)    
-        .setOrigin(0, 1)
-        .setScale(4)
-        .setCollideWorldBounds(true);
+export function createGoombas(scene, positions) {
+    // Crear un grupo de Goombas
+    scene.goombas = scene.physics.add.group({
+        bounceX: 1, // Rebota en los bordes
+        allowGravity: true, // Asegurar que caigan correctamente
+        velocityX: -50, // Se mueven hacia la izquierda
+    });
 
-    // Velocidad inicial
-    goomba.setVelocityX(-50); // Se mueve hacia la izquierda
-    goomba.body.setBounce(1, 0); // Rebota en los bordes
+    // Crear Goombas en las posiciones dadas
+    positions.forEach(([x, y]) => {
+        const goomba = scene.goombas.create(x, y, 'goomba')
+            .setSize(14, 16)
+            .setOrigin(0, 1)
+            .setScale(4);
 
+        goomba.isDead = false; // Propiedad personalizada para gestionar su estado
+    });
 
-    return goomba;
+    return scene.goombas;
 }

@@ -1,6 +1,6 @@
 import { createAnimations } from "../../gameMechanics/animations.js";
 import { createMario } from "../../entities/Mario.js";
-import { createGoomba } from "../../entities/Goomba.js";
+import { createGoombas } from "../../entities/Goomba.js";
 
 export class Nivel2 extends Phaser.Scene {
     constructor() {
