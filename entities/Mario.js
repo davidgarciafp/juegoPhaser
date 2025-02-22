@@ -1,6 +1,6 @@
 export function createMario(scene) {
     const mario = scene.physics.add.sprite(50, 500, 'mario')
-        .setSize(16, 16)    
+        .setSize(13, 16)    
         .setOrigin(0, 1)
         .setScale(3)
         .setCollideWorldBounds(true)
