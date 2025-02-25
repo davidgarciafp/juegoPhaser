@@ -24,7 +24,7 @@ export const updateCharacterBehaviors = (scene) => {
     }
 
     if (scene.keys.up.isDown && mario.body.touching.down) {
-        mario.setVelocityY(-500);
+        mario.setVelocityY(-2000);
         scene.sound.add('jump', { volume: 0.1 }).play();
     }
     if (!mario.body.touching.down) {
@@ -39,7 +39,7 @@ export const updateCharacterBehaviors = (scene) => {
         scene.sound.add('dead', { volume: 0.5 }).play();
 
         setTimeout(() => {
-            mario.setVelocityY(-350);
+            mario.setVelocityY(-700);
         }, 100);
 
         setTimeout(() => {

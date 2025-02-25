@@ -32,14 +32,7 @@ export class Nivel1 extends Phaser.Scene {
             // Crear la nube en la posición calculada
             const cloud = this.add.image(randomX, randomY, 'cloud1').setOrigin(0, 0).setScale(0.5);
 
-            // Añadir movimiento continuo hacia la izquierda
-            this.tweens.add({
-                targets: cloud,
-                x: -cloud.displayWidth,  // Mover la nube fuera de la pantalla por la izquierda
-                duration: Phaser.Math.Between(90000, 100000),  // Duración aleatoria para cada nube
-                ease: 'Linear',
-                repeat: -1,  // Repetir indefinidamente
-            });
+
 
             // Actualizar la posición para la siguiente nube
             lastX = cloud.x + cloud.displayWidth;
@@ -69,19 +62,15 @@ export class Nivel1 extends Phaser.Scene {
             .setOrigin(0, 0)
             .setScale(3)
             .refreshBody();
-        this.block = this.blocks.create(suelo.x + floorWidth + this.block.displayWidth + 200, this.sys.game.config.height - floorHeight - blockHeight, 'block')
-            .setOrigin(0, 0)
-            .setScale(3)
-            .refreshBody();
         this.block = this.blocks.create(suelo.x + floorWidth/2 + this.block.displayWidth + 125,500, 'block')
             .setOrigin(0, 0)
             .setScale(3)
             .refreshBody();
-        this.block2 = this.blocks.create(this.block.x + this.block.displayWidth, 500, 'block') // Usa el `x` del bloque anterior
+        this.block = this.blocks.create(suelo.x + floorWidth/2, this.sys.game.config.height-300, 'block')
             .setOrigin(0, 0)
             .setScale(3)
             .refreshBody();
-        this.block3 = this.blocks.create(this.block2.x + this.block2.displayWidth, 500, 'block') // Usa el `x` del bloque anterior
+        this.block = this.blocks.create(suelo.x + floorWidth/2 + this.block.displayWidth + 125,this.sys.game.config.height-400, 'block')
             .setOrigin(0, 0)
             .setScale(3)
             .refreshBody();
@@ -109,9 +98,9 @@ export class Nivel1 extends Phaser.Scene {
 
         createAnimations(this);
 
-        this.physics.world.setBounds(0, 0, 100000, this.sys.game.config.height);
-        this.cameras.main.setBounds(0, 0, 100000, this.sys.game.config.height);
-        this.cameras.main.startFollow(this.mario, true, 0.1, 0.1);
+        this.physics.world.setBounds(0, 0, 1280, 100000);
+        this.cameras.main.setBounds(0, 0, 12800, 100000);
+        this.cameras.main.startFollow(this.mario,true, 0.5, 0.5);
 
         this.keys = this.input.keyboard.createCursorKeys();
         this.sound.add('theme', { volume: 0.5, loop: true }).play();
@@ -119,13 +108,7 @@ export class Nivel1 extends Phaser.Scene {
 
     update() {
         updateCharacterBehaviors(this);
-        if (this.keys.left.isDown) {
-            // Si Mario se mueve a la izquierda, detén el movimiento de la cámara
-            this.cameras.main.stopFollow();
-        } else {
-            // Si Mario no se mueve a la izquierda, la cámara sigue a Mario
-            this.cameras.main.startFollow(this.mario, true, 0.1, 0.1);
-        }
+        
 
     }
 }
