@@ -109,12 +109,23 @@ export class Nivel1 extends Phaser.Scene {
 
         createAnimations(this);
 
+        this.physics.world.setBounds(0, 0, 100000, this.sys.game.config.height);
+        this.cameras.main.setBounds(0, 0, 100000, this.sys.game.config.height);
+        this.cameras.main.startFollow(this.mario, true, 0.1, 0.1);
+
         this.keys = this.input.keyboard.createCursorKeys();
         this.sound.add('theme', { volume: 0.5, loop: true }).play();
     }
 
     update() {
         updateCharacterBehaviors(this);
-        
+        if (this.keys.left.isDown) {
+            // Si Mario se mueve a la izquierda, detén el movimiento de la cámara
+            this.cameras.main.stopFollow();
+        } else {
+            // Si Mario no se mueve a la izquierda, la cámara sigue a Mario
+            this.cameras.main.startFollow(this.mario, true, 0.1, 0.1);
+        }
+
     }
 }

@@ -62,4 +62,22 @@ export const updateCharacterBehaviors = (scene) => {
             goomba.anims.play('goomba-walk', true);
         }
     });
+
+
+    if (mario.x <= scene.cameras.main.scrollX) {
+        // Si Mario está a la izquierda de la cámara, muere
+        mario.isDead = true;
+        mario.anims.play('mario-dead');
+        scene.sound.stopAll();
+        scene.sound.add('dead', { volume: 0.5 }).play();
+        
+
+        setTimeout(() => {
+            mario.setVelocityY(-350);
+        }, 100);
+
+        setTimeout(() => {
+            scene.scene.restart();
+        }, 2000);
+    }
 };

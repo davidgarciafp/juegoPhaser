@@ -50,4 +50,5 @@ export const handleCollisions = (scene) => {
     // Colisiones entre el Goomba y el suelo
     scene.physics.add.collider(goombas, scene.floor);
     scene.physics.add.collider(goombas, scene.blocks);
+    
 };
