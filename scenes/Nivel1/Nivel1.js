@@ -10,6 +10,7 @@ export class Nivel1 extends Phaser.Scene {
     }
 
     create() {
+        let worldHeight = 100000;
         const numberOfClouds = 100000; // Número de nubes
         const cloudWidth = 150; // Ancho de la nube
         let lastX = 0; // Coordenada X inicial para la primera nube
@@ -43,34 +44,34 @@ export class Nivel1 extends Phaser.Scene {
 
 
         this.floor = this.physics.add.staticGroup();
-        let suelo = this.floor.create(0, this.sys.game.config.height - 16, 'floorbricks').setOrigin(0, 0.5).setScale(3).refreshBody();
+        let suelo = this.floor.create(0, worldHeight  - 16, 'floorbricks').setOrigin(0, 0.5).setScale(3).refreshBody();
         let floorWidth = suelo.displayWidth;
         let floorHeight = suelo.displayHeight;
-        suelo = this.floor.create(suelo.x + floorWidth + 100, this.sys.game.config.height - 16, 'floorbricks')
+        suelo = this.floor.create(suelo.x + floorWidth + 100, worldHeight  - 16, 'floorbricks')
             .setOrigin(0, 0.5)
             .setScale(3)
             .refreshBody();
 
-        suelo = this.floor.create(suelo.x + floorWidth, this.sys.game.config.height - 16, 'floorbricks')
+        suelo = this.floor.create(suelo.x + floorWidth, worldHeight  - 16, 'floorbricks')
             .setOrigin(0, 0.5)
             .setScale(3)
             .refreshBody();
 
         const blockHeight = 16; 
         this.blocks = this.physics.add.staticGroup();
-        this.block = this.blocks.create(suelo.x + floorWidth / 2, this.sys.game.config.height - floorHeight - blockHeight, 'block')
+        this.block = this.blocks.create(suelo.x + floorWidth / 2,worldHeight  - floorHeight - blockHeight, 'block')
             .setOrigin(0, 0)
             .setScale(3)
             .refreshBody();
-        this.block = this.blocks.create(suelo.x + floorWidth/2 + this.block.displayWidth + 125,500, 'block')
+        this.block = this.blocks.create(suelo.x + floorWidth/2 + worldHeight  + 125,500, 'block')
             .setOrigin(0, 0)
             .setScale(3)
             .refreshBody();
-        this.block = this.blocks.create(suelo.x + floorWidth/2, this.sys.game.config.height-300, 'block')
+        this.block = this.blocks.create(suelo.x + floorWidth/2, worldHeight -300, 'block')
             .setOrigin(0, 0)
             .setScale(3)
             .refreshBody();
-        this.block = this.blocks.create(suelo.x + floorWidth/2 + this.block.displayWidth + 125,this.sys.game.config.height-400, 'block')
+        this.block = this.blocks.create(suelo.x + floorWidth/2 + this.block.displayWidth + 125,worldHeight -400, 'block')
             .setOrigin(0, 0)
             .setScale(3)
             .refreshBody();
@@ -78,7 +79,7 @@ export class Nivel1 extends Phaser.Scene {
         
 
         for (let i = 0; i < 5; i++) {
-            suelo = this.floor.create(suelo.x + floorWidth, this.sys.game.config.height - 16, 'floorbricks')
+            suelo = this.floor.create(suelo.x + floorWidth, worldHeight  - 16, 'floorbricks')
                 .setOrigin(0, 0.5)
                 .setScale(3)
                 .refreshBody();
@@ -89,9 +90,9 @@ export class Nivel1 extends Phaser.Scene {
         this.goombas = this.physics.add.group();
 
         this.goombas = createGoombas(this, [
-            [500, this.sys.game.config.height - 100],
-            [800, this.sys.game.config.height - 100],
-            [1200, this.sys.game.config.height - 100]
+            [500, worldHeight  - 100],
+            [800, worldHeight  - 100],
+            [1200, worldHeight  - 100]
         ]);
 
         handleCollisions(this);

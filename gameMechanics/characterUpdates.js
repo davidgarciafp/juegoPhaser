@@ -31,7 +31,7 @@ export const updateCharacterBehaviors = (scene) => {
         mario.anims.play('mario-jump', true);
     }
 
-    if (mario.y >= scene.sys.game.config.height) {
+    if (mario.y >= 100000) {
         mario.isDead = true;
         mario.anims.play('mario-dead');
         mario.setCollideWorldBounds(false);
