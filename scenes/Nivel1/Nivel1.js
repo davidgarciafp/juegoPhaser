@@ -101,7 +101,7 @@ export class Nivel1 extends Phaser.Scene {
 
         this.physics.world.setBounds(0, 0, 1280, 100000);
         this.cameras.main.setBounds(0, 0, 12800, 100000);
-        this.cameras.main.startFollow(this.mario,true, 0.5, 0.5);
+        this.cameras.main.startFollow(this.mario,true, 0, 1);
 
         this.keys = this.input.keyboard.createCursorKeys();
         this.sound.add('theme', { volume: 0.5, loop: true }).play();
