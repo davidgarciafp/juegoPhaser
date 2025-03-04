@@ -30,22 +30,24 @@ export const updateCharacterBehaviors = (scene) => {
     if (!mario.body.touching.down) {
         mario.anims.play('mario-jump', true);
     }
+    setTimeout(() => {
+        if (mario.y >  scene.cameras.main.height) {
+            mario.isDead = true;
+            mario.anims.play('mario-dead');
+            mario.setCollideWorldBounds(false);
+            scene.sound.stopAll();
+            scene.sound.add('dead', { volume: 0.5 }).play();
 
-    if (mario.y >= 100000) {
-        mario.isDead = true;
-        mario.anims.play('mario-dead');
-        mario.setCollideWorldBounds(false);
-        scene.sound.stopAll();
-        scene.sound.add('dead', { volume: 0.5 }).play();
+            setTimeout(() => {
+                mario.setVelocityY(-700);
+            }, 100);
 
-        setTimeout(() => {
-            mario.setVelocityY(-700);
-        }, 100);
-
-        setTimeout(() => {
-            scene.scene.restart();
-        }, 2000);
-    }
+            setTimeout(() => {
+                scene.scene.restart();
+            }, 2000);
+        }
+    }, 500);
+    
 
     // Comportamiento especial de Mario con shift + flechas
     if (scene.keys.up.isDown && scene.keys.shift.isDown && scene.keys.right.isDown) {

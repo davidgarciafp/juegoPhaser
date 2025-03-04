@@ -15,7 +15,6 @@ export const loadAssets1 = (scene) => {
     scene.load.audio('dead', 'assets/sound/music/dead.mp3');
     scene.load.audio('jump', 'assets/sound/effects/jump.mp3');
     scene.load.audio('theme', 'assets/sound/music/overworld/theme.mp3');
-    scene.load.audio('goombaDead', 'assets/sound/effects/goomba-stomp.wav');
 };
 
 export const loadAssets2 = (scene) => {

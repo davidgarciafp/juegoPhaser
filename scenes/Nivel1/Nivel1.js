@@ -7,41 +7,31 @@ import { handleCollisions } from "../../gameMechanics/collisions.js";
 export class Nivel1 extends Phaser.Scene {
     constructor() {
         super({ key: 'Nivel1' });
+
     }
 
     create() {
-        let worldHeight = 100000;
-        const numberOfClouds = 100000; // Número de nubes
-        const cloudWidth = 150; // Ancho de la nube
-        let lastX = 0; // Coordenada X inicial para la primera nube
 
-        // Calcular la distancia mínima entre las nubes
-        const minDistance = cloudWidth + 50;  // El 50 es la separación que deseas entre nubes
+        this.physics.world.setBounds(0, 0, 1280, 10000);
+        this.cameras.main.setBounds(0, 0, 1280, 10000);
+        this.cameras.main.setScroll(0, 10000);
+
+
+        let worldHeight = 10000;
+        const numberOfClouds = 1000; 
+        const cloudHeight = 50; 
+        let lastY = 0; 
+        const minDistance = cloudHeight + 50;  
 
         for (let i = 0; i < numberOfClouds; i++) {
-            // Calcular la posición aleatoria Y para cada nube
-            const randomY = Phaser.Math.Between(50, 400);
-            
-            // Calcular la posición X de la nube con separación suficiente respecto a la anterior
-            const randomX = lastX + Phaser.Math.Between(minDistance, minDistance + 100);
-
-            // Si la última nube se coloca fuera de la pantalla, se ajusta para que no se pase
-            if (randomX + cloudWidth > 100000) {
+            const randomX = Phaser.Math.Between(50, 1200);
+                        const randomY = lastY + Phaser.Math.Between(minDistance, minDistance + 100);
+            if (randomY + cloudHeight > 10000) {
                 break;
             }
-
-            // Crear la nube en la posición calculada
             const cloud = this.add.image(randomX, randomY, 'cloud1').setOrigin(0, 0).setScale(0.5);
-
-
-
-            // Actualizar la posición para la siguiente nube
-            lastX = cloud.x + cloud.displayWidth;
+            lastY = cloud.y + cloud.displayHeight;
         }
-
-
-
-
 
         this.floor = this.physics.add.staticGroup();
         let suelo = this.floor.create(0, worldHeight  - 16, 'floorbricks').setOrigin(0, 0.5).setScale(3).refreshBody();
@@ -75,6 +65,10 @@ export class Nivel1 extends Phaser.Scene {
             .setOrigin(0, 0)
             .setScale(3)
             .refreshBody();
+        this.block = this.blocks.create(suelo.x + floorWidth/2 + this.block.displayWidth + 125,worldHeight -600, 'block')
+            .setOrigin(0, 0)
+            .setScale(3)
+            .refreshBody();
 
         
 
@@ -86,6 +80,7 @@ export class Nivel1 extends Phaser.Scene {
         }
 
         this.mario = createMario(this);
+
 
         this.goombas = this.physics.add.group();
 
@@ -99,17 +94,31 @@ export class Nivel1 extends Phaser.Scene {
 
         createAnimations(this);
 
-        this.physics.world.setBounds(0, 0, 1280, 100000);
-        this.cameras.main.setBounds(0, 0, 12800, 100000);
-        this.cameras.main.startFollow(this.mario,true, 0, 1);
+        
+        this.cameras.main.startFollow(this.mario, true, 0, 1); 
+
 
         this.keys = this.input.keyboard.createCursorKeys();
         this.sound.add('theme', { volume: 0.5, loop: true }).play();
+
+        this.minY = 9800;
+        this.isMovingUp = false;
     }
 
     update() {
         updateCharacterBehaviors(this);
-        
+        if (this.mario.y < this.minY) {
+            this.cameras.main.startFollow(this.mario, true, 0, 1); 
+            this.minY = this.mario.y;
+            this.isMovingUp = true; 
+        }
+
+        if (this.mario.y > this.minY && this.isMovingUp) {
+            this.cameras.main.stopFollow();
+            this.isMovingUp = false;
+        }
+
+
 
     }
 }

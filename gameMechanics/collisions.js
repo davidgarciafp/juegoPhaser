@@ -13,7 +13,6 @@ export const handleCollisions = (scene) => {
             goomba.anims.stop();
             goomba.anims.play('goomba-dead', true);
             goomba.setTint(0x5784FF);
-            scene.sound.add('goombaDead', { volume: 5 }).play();
             goomba.body.enable = false;
             goomba.body.allowGravity = false;
             goomba.setImmovable(true);
@@ -21,11 +20,6 @@ export const handleCollisions = (scene) => {
                 goomba.destroy();
             }, 1000);
         } else if(!mario.isDead) {  
-            // Si Mario no está muerto, se mata al
-            // chocar con el Goomba desde cualquier otro lado   
-
-        
-                // Si Mario no está saltando sobre el Goomba, se mata al chocar con él
                 mario.isDead = true;
                 mario.anims.play('mario-dead');
                 scene.sound.stopAll();
