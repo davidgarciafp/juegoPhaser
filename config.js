@@ -8,7 +8,7 @@ export const config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 750 },
-            debug: true
+            debug: false
         },
     },
     scene: [] // Se añadirán las escenas en main.js
