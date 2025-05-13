@@ -14,6 +14,15 @@ export const updateCharacterBehaviors = (scene) => {
     // Movimiento de Mario
     if (mario.isDead) return;
 
+
+    if (scene.keys.space.isDown && mario.body.touching.down) {
+        mario.setVelocityY(-20000);
+        scene.sound.add('jump', { volume: 0.1 }).play();
+        // Reiniciar el sistema de detección de caída
+        scene.fallDetection.maxY = mario.y;
+        scene.fallDetection.fallDistance = 0;
+        scene.fallDetection.isTracking = true;
+    }
     if (scene.keys.left.isDown) {
         mario.setVelocityX(-150);
         mario.anims.play('mario-walk', true);

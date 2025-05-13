@@ -3,14 +3,61 @@ import { createMario } from "../../entities/Mario.js";
 import { createGoombas } from "../../entities/Goomba.js";
 import { updateCharacterBehaviors } from "../../gameMechanics/characterUpdates.js";
 import { handleCollisions } from "../../gameMechanics/collisions.js";
+import { loadAssets1 } from "../../assets/assets.js";
 
 export class Nivel1 extends Phaser.Scene {
     constructor() {
         super({ key: 'Nivel1' });
+        this.resetVariables();
+    }
 
+    // Método para reiniciar todas las variables
+    resetVariables() {
+        this.levelCompleted = false;
+        this.mario = null;
+        this.goombas = null;
+        this.minY = 0;
+        this.isMovingUp = false;
+        this.startY = 0;
+        this.endY = 0;
+        this.totalDistance = 0;
+        this.lastProgressPercent = 0;
+    }
+
+    preload() {
+        // Mostrar texto de carga
+        const loadingText = this.add.text(640, 360, 'Cargando nivel...', {
+            fontSize: '32px',
+            fill: '#ffffff',
+            fontFamily: 'Arial'
+        }).setOrigin(0.5);
+        
+        // Mostrar una barra de carga
+        let loadingBar = this.add.graphics({
+            fillStyle: {
+                color: 0xffffff // blanco
+            }
+        });
+        
+        this.load.on('progress', (percent) => {
+            loadingBar.fillRect(240, 400, 800 * percent, 30);
+            loadingText.setText(`Cargando nivel... ${Math.floor(percent * 100)}%`);
+        });
+        
+        this.load.on('complete', () => {
+            loadingBar.destroy();
+            loadingText.destroy();
+        });
+        
+        // Cargar recursos usando la función loadAssets1
+        loadAssets1(this);
     }
 
     create() {
+        console.log("Nivel1: create iniciado");
+        
+        // Reiniciar variables al iniciar la escena
+        this.resetVariables();
 
         this.physics.world.setBounds(0, 0, 1280, 10000);
         this.cameras.main.setBounds(0, 0, 1280, 10000);
@@ -78,41 +125,143 @@ export class Nivel1 extends Phaser.Scene {
         const scaledBlockHeight = blockHeight * blockScale;
         const scaledBlockWidth = 16 * blockScale; // Asumiendo que el ancho del bloque es 16px
         
+        // Array para almacenar las posiciones de los bloques ya colocados
+        const placedBlocks = [];
+        
+        // Función para verificar si un nuevo bloque se superpone con alguno existente
+        const isOverlapping = (x, y, width, height) => {
+            const margin = 5; // Pequeño margen para evitar bloques demasiado cercanos
+            for (const block of placedBlocks) {
+                if (
+                    x < block.x + block.width + margin &&
+                    x + width + margin > block.x &&
+                    y < block.y + block.height + margin &&
+                    y + height + margin > block.y
+                ) {
+                    return true; // Hay superposición
+                }
+            }
+            return false; // No hay superposición
+        };
+        
+        // Función para crear un bloque si no se superpone con otros
+        const tryCreateBlock = (x, y) => {
+            if (!isOverlapping(x, y, scaledBlockWidth, scaledBlockHeight)) {
+                this.block = this.blocks.create(x, y, 'block')
+                    .setOrigin(0, 0)
+                    .setScale(blockScale)
+                    .refreshBody();
+                
+                // Registrar este bloque como colocado
+                placedBlocks.push({
+                    x: x,
+                    y: y,
+                    width: scaledBlockWidth,
+                    height: scaledBlockHeight
+                });
+                
+                return true; // Bloque creado exitosamente
+            }
+            return false; // No se pudo crear el bloque
+        };
+        
         // Dividir el mundo en secciones verticales para una distribución más regular
         const totalSections = 40; // Número de secciones verticales
         const sectionHeight = (worldHeight - 1000) / totalSections;
         
-        // Crear bloques en cada sección
+        // Crear bloques en cada sección - REDUCIDO el número de plataformas por sección
         for (let section = 0; section < totalSections; section++) {
             const sectionY = worldHeight - 300 - (section * sectionHeight);
             
-            // Número de plataformas en esta sección
-            const platformsInSection = Phaser.Math.Between(4, 8);
+            // REDUCIDO: Número de plataformas en esta sección (de 4-8 a 2-4)
+            const platformsInSection = Phaser.Math.Between(2, 4);
             
             for (let p = 0; p < platformsInSection; p++) {
-                // Posición X aleatoria para la plataforma
-                const platformX = Phaser.Math.Between(100, 1100 - scaledBlockWidth * 3);
+                // Intentar colocar una plataforma hasta 10 veces
+                let platformPlaced = false;
+                let attempts = 0;
                 
-                // Longitud de la plataforma
-                const platformLength = Phaser.Math.Between(2, 4);
-                
-                // Pequeña variación en Y para que no todas las plataformas estén exactamente a la misma altura
-                const yVariation = Phaser.Math.Between(-30, 30);
-                
-                // Crear la plataforma
-                for (let j = 0; j < platformLength; j++) {
-                    this.block = this.blocks.create(
-                        platformX + (j * scaledBlockWidth), 
-                        sectionY + yVariation, 
-                        'block'
-                    )
-                    .setOrigin(0, 0)
-                    .setScale(blockScale)
-                    .refreshBody();
+                while (!platformPlaced && attempts < 10) {
+                    // Posición X aleatoria para la plataforma
+                    const platformX = Phaser.Math.Between(100, 1100 - scaledBlockWidth * 3);
+                    
+                    // REDUCIDO: Longitud de la plataforma (de 2-4 a 1-2)
+                    const platformLength = Phaser.Math.Between(1, 2);
+                    
+                    // Pequeña variación en Y para que no todas las plataformas estén exactamente a la misma altura
+                    const yVariation = Phaser.Math.Between(-30, 30);
+                    const platformY = sectionY + yVariation;
+                    
+                    // Verificar si toda la plataforma puede colocarse sin superposiciones
+                    let canPlacePlatform = true;
+                    for (let j = 0; j < platformLength; j++) {
+                        if (isOverlapping(
+                            platformX + (j * scaledBlockWidth), 
+                            platformY, 
+                            scaledBlockWidth, 
+                            scaledBlockHeight
+                        )) {
+                            canPlacePlatform = false;
+                            break;
+                        }
+                    }
+                    
+                    // Si podemos colocar toda la plataforma, hacerlo
+                    if (canPlacePlatform) {
+                        for (let j = 0; j < platformLength; j++) {
+                            tryCreateBlock(
+                                platformX + (j * scaledBlockWidth), 
+                                platformY
+                            );
+                        }
+                        platformPlaced = true;
+                    }
+                    
+                    attempts++;
                 }
             }
         }
         
+        // REDUCIDO: Crear algunas plataformas adicionales cerca del suelo para facilitar el inicio
+        for (let i = 0; i < 8; i++) { // Reducido de 15 a 8
+            // Intentar colocar una plataforma hasta 10 veces
+            let platformPlaced = false;
+            let attempts = 0;
+            
+            while (!platformPlaced && attempts < 10) {
+                const platformX = Phaser.Math.Between(100, 1100 - scaledBlockWidth * 3);
+                const platformY = worldHeight - 150 - Phaser.Math.Between(50, 200);
+                // REDUCIDO: Longitud de la plataforma (de 2-4 a 1-2)
+                const platformLength = Phaser.Math.Between(1, 2);
+                
+                // Verificar si toda la plataforma puede colocarse sin superposiciones
+                let canPlacePlatform = true;
+                for (let j = 0; j < platformLength; j++) {
+                    if (isOverlapping(
+                        platformX + (j * scaledBlockWidth), 
+                        platformY, 
+                        scaledBlockWidth, 
+                        scaledBlockHeight
+                    )) {
+                        canPlacePlatform = false;
+                        break;
+                    }
+                }
+                
+                // Si podemos colocar toda la plataforma, hacerlo
+                if (canPlacePlatform) {
+                    for (let j = 0; j < platformLength; j++) {
+                        tryCreateBlock(
+                            platformX + (j * scaledBlockWidth), 
+                            platformY
+                        );
+                    }
+                    platformPlaced = true;
+                }
+                
+                attempts++;
+            }
+        }
         // Crear una ruta principal de subida en zigzag
         let zigzagX = 200;
         let zigzagY = worldHeight - 300;
@@ -120,18 +269,46 @@ export class Nivel1 extends Phaser.Scene {
         const zigzagHeight = (worldHeight - 800) / zigzagSteps;
         
         for (let i = 0; i < zigzagSteps; i++) {
-            // Crear una plataforma en cada paso del zigzag
-            const platformLength = Phaser.Math.Between(2, 4);
+            // Intentar colocar una plataforma hasta 10 veces
+            let platformPlaced = false;
+            let attempts = 0;
             
-            for (let j = 0; j < platformLength; j++) {
-                this.block = this.blocks.create(
-                    zigzagX + (j * scaledBlockWidth), 
-                    zigzagY, 
-                    'block'
-                )
-                .setOrigin(0, 0)
-                .setScale(blockScale)
-                .refreshBody();
+            while (!platformPlaced && attempts < 10) {
+                // Crear una plataforma en cada paso del zigzag
+                // REDUCIDO: Longitud de la plataforma (de 2-4 a 1-2)
+                const platformLength = Phaser.Math.Between(1, 2);
+                
+                // Verificar si toda la plataforma puede colocarse sin superposiciones
+                let canPlacePlatform = true;
+                for (let j = 0; j < platformLength; j++) {
+                    if (isOverlapping(
+                        zigzagX + (j * scaledBlockWidth), 
+                        zigzagY, 
+                        scaledBlockWidth, 
+                        scaledBlockHeight
+                    )) {
+                        canPlacePlatform = false;
+                        break;
+                    }
+                }
+                
+                // Si podemos colocar toda la plataforma, hacerlo
+                if (canPlacePlatform) {
+                    for (let j = 0; j < platformLength; j++) {
+                        tryCreateBlock(
+                            zigzagX + (j * scaledBlockWidth), 
+                            zigzagY
+                        );
+                    }
+                    platformPlaced = true;
+                } else {
+                    // Si no podemos colocar la plataforma, intentar con una posición X ligeramente diferente
+                    zigzagX += Phaser.Math.Between(-50, 50);
+                    // Asegurarse de que zigzagX esté dentro de los límites
+                    zigzagX = Phaser.Math.Clamp(zigzagX, 100, 1100 - platformLength * scaledBlockWidth);
+                }
+                
+                attempts++;
             }
             
             // Mover hacia arriba
@@ -139,72 +316,49 @@ export class Nivel1 extends Phaser.Scene {
             
             // Alternar entre izquierda y derecha
             if (i % 2 === 0) {
-                zigzagX = Phaser.Math.Between(700, 1000 - platformLength * scaledBlockWidth);
+                zigzagX = Phaser.Math.Between(700, 1000 - 4 * scaledBlockWidth);
             } else {
                 zigzagX = Phaser.Math.Between(100, 400);
             }
         }
-        
-        // Crear algunas plataformas adicionales cerca del suelo para facilitar el inicio
-        for (let i = 0; i < 15; i++) {
-            const platformX = Phaser.Math.Between(100, 1100 - scaledBlockWidth * 3);
-            const platformY = worldHeight - 150 - Phaser.Math.Between(50, 200);
-            const platformLength = Phaser.Math.Between(2, 4);
-            
-            for (let j = 0; j < platformLength; j++) {
-                this.block = this.blocks.create(
-                    platformX + (j * scaledBlockWidth), 
-                    platformY, 
-                    'block'
-                )
-                .setOrigin(0, 0)
-                .setScale(blockScale)
-                .refreshBody();
-            }
-        }
-        
-        // Crear algunas plataformas largas como áreas de descanso
-        for (let i = 0; i < 10; i++) {
-            const restY = worldHeight - 1000 - (i * 900);
-            const restX = Phaser.Math.Between(200, 800);
-            const restLength = Phaser.Math.Between(5, 8);
-            
-            for (let j = 0; j < restLength; j++) {
-                this.block = this.blocks.create(
-                    restX + (j * scaledBlockWidth), 
-                    restY, 
-                    'block'
-                )
-                .setOrigin(0, 0)
-                .setScale(blockScale)
-                .refreshBody();
-            }
-        }
-        
+
+        // Crear animaciones antes de crear los personajes
+        createAnimations(this);
 
         // Crear a Mario y configurarlo para que colisione con los bordes del mundo
         this.mario = createMario(this);
+        
+        if (!this.mario) {
+            console.error("Error: No se pudo crear a Mario");
+            return;
+        }
+        
         this.mario.setCollideWorldBounds(true);
+        this.mario.isDead = false; // Asegurarse de que Mario no esté muerto al iniciar
 
-
+        // Crear goombas
         this.goombas = this.physics.add.group();
-
         this.goombas = createGoombas(this, [
             [500, worldHeight  - 100],
             [800, worldHeight  - 100],
             [1200, worldHeight  - 100]
         ]);
 
+        // Configurar colisiones
         handleCollisions(this);
 
-        createAnimations(this);
-
         
+        // Configurar la cámara para seguir a Mario
         this.cameras.main.startFollow(this.mario, true, 0, 1); 
 
-
+        // Configurar controles - Asegurarse de que se crean nuevos controles cada vez
         this.keys = this.input.keyboard.createCursorKeys();
-        this.sound.add('theme', { volume: 0.5, loop: true }).play();
+        // Reproducir música de fondo
+        try {
+            this.sound.add('theme', { volume: 0.5, loop: true }).play();
+        } catch (error) {
+            console.warn("No se pudo reproducir la música del tema:", error);
+        }
 
         this.minY = worldHeight - 100; // Posición inicial de Mario
         this.isMovingUp = false;
@@ -213,6 +367,7 @@ export class Nivel1 extends Phaser.Scene {
         this.startY = worldHeight - 100; // Posición inicial (parte inferior)
         this.endY = 500; // Posición final (parte superior)
         this.totalDistance = this.startY - this.endY; // Distancia total a recorrer
+        this.lastProgressPercent = 0; // Para rastrear cuando llegamos al 100%
         
         // Crear el texto del contador de progreso
         this.progressText = this.add.text(20, 20, 'Progreso: 0%', { 
@@ -232,9 +387,41 @@ export class Nivel1 extends Phaser.Scene {
         this.progressBar = this.add.rectangle(640 - 200, 50, 0, 20, 0x00ff00);
         this.progressBar.setScrollFactor(0);
         this.progressBar.setOrigin(0, 0.5);
+        
+        // Crear un botón para volver al menú principal
+        this.menuButton = this.add.text(1200, 20, 'Menú', {
+            fontSize: '24px',
+            fill: '#fff',
+            stroke: '#000',
+            strokeThickness: 4,
+            fontFamily: 'Arial'
+        });
+        this.menuButton.setScrollFactor(0); // Fijar a la cámara
+        this.menuButton.setInteractive();
+        this.menuButton.on('pointerover', () => {
+            this.menuButton.setFontSize(28);
+        });
+        this.menuButton.on('pointerout', () => {
+            this.menuButton.setFontSize(24);
+        });
+        this.menuButton.on('pointerdown', () => {
+            this.sound.stopAll();
+            this.scene.start('MainMenu');
+        });
+        
+        console.log("Nivel1: create completado");
     }
 
     update() {
+        // Verificar que mario existe antes de actualizar
+        if (!this.mario) {
+            console.warn('Mario no está definido en update');
+            return;
+        }
+        
+        // Si el nivel ya está completado, no hacer nada más
+        if (this.levelCompleted) return;
+        
         updateCharacterBehaviors(this);
         
         // Actualizar la cámara para seguir a Mario cuando sube
@@ -267,7 +454,141 @@ export class Nivel1 extends Phaser.Scene {
         } else {
             this.progressBar.fillColor = 0x00ff00; // Verde
         }
-
-
+        
+        // Verificar si hemos alcanzado el 100% por primera vez
+        if (progressPercent === 100 && this.lastProgressPercent < 100) {
+            this.showCompletionMessage();
+        }
+        
+        // Actualizar el último porcentaje de progreso
+        this.lastProgressPercent = progressPercent;
+    }
+    
+    // Método que se ejecuta cuando se detiene la escena
+    shutdown() {
+        // Limpiar recursos
+        this.sound.stopAll();
+        
+        // Reiniciar variables
+        this.resetVariables();
+        
+        console.log("Nivel1: shutdown completado");
+    }
+    
+    showCompletionMessage() {
+        // Marcar el nivel como completado
+        this.levelCompleted = true;
+        
+        // Detener a Mario
+        this.mario.setVelocity(0, 0);
+        this.mario.body.allowGravity = false;
+        
+        // Detener la música del nivel
+        this.sound.stopAll();
+        
+        // Reproducir sonido de victoria
+        try {
+            this.sound.add('jump', { volume: 0.5 }).play();
+        } catch (error) {
+            console.warn("No se pudo reproducir el sonido de victoria:", error);
+        }
+        
+        // Crear un fondo semitransparente
+        const overlay = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x000000, 0.7)
+            .setOrigin(0, 0)
+            .setScrollFactor(0);
+        
+        // Crear el panel de mensaje
+        const messagePanel = this.add.rectangle(640, 360, 600, 400, 0x333333)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setStrokeStyle(4, 0xffff00);
+        
+        // Título de felicitación
+        const congratsText = this.add.text(640, 220, '¡FELICIDADES!', {
+            fontSize: '48px',
+            fill: '#ffff00',
+            fontFamily: 'Arial',
+            stroke: '#000',
+            strokeThickness: 6
+        }).setOrigin(0.5).setScrollFactor(0);
+        
+        // Mensaje de completado
+        const messageText = this.add.text(640, 300, 'Has completado el Nivel 1', {
+            fontSize: '32px',
+            fill: '#ffffff',
+            fontFamily: 'Arial',
+            stroke: '#000',
+            strokeThickness: 4
+        }).setOrigin(0.5).setScrollFactor(0);
+        
+        // Pregunta para el siguiente nivel
+        const questionText = this.add.text(640, 380, '¿Quieres pasar al siguiente nivel?', {
+            fontSize: '28px',
+            fill: '#ffffff',
+            fontFamily: 'Arial',
+            stroke: '#000',
+            strokeThickness: 3
+        }).setOrigin(0.5).setScrollFactor(0);
+        
+        // Botón "Sí"
+        const yesButton = this.add.rectangle(500, 460, 200, 80, 0x00aa00)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setInteractive();
+        
+        const yesText = this.add.text(500, 460, 'SÍ', {
+            fontSize: '32px',
+            fill: '#ffffff',
+            fontFamily: 'Arial',
+            stroke: '#000',
+            strokeThickness: 4
+        }).setOrigin(0.5).setScrollFactor(0);
+        
+        // Botón "No"
+        const noButton = this.add.rectangle(780, 460, 200, 80, 0xaa0000)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setInteractive();
+        
+        const noText = this.add.text(780, 460, 'NO', {
+            fontSize: '32px',
+            fill: '#ffffff',
+            fontFamily: 'Arial',
+            stroke: '#000',
+            strokeThickness: 4
+        }).setOrigin(0.5).setScrollFactor(0);
+        
+        // Efectos de hover para los botones
+        yesButton.on('pointerover', () => {
+            yesButton.fillColor = 0x00ff00;
+            yesText.setFontSize(36);
+        });
+        
+        yesButton.on('pointerout', () => {
+            yesButton.fillColor = 0x00aa00;
+            yesText.setFontSize(32);
+        });
+        
+        noButton.on('pointerover', () => {
+            noButton.fillColor = 0xff0000;
+            noText.setFontSize(36);
+        });
+        
+        noButton.on('pointerout', () => {
+            noButton.fillColor = 0xaa0000;
+            noText.setFontSize(32);
+        });
+        
+        // Acciones de los botones
+        yesButton.on('pointerdown', () => {
+            // Ir al siguiente nivel
+            this.scene.start('Nivel2');
+        });
+        
+        noButton.on('pointerdown', () => {
+            // Volver al menú principal
+            this.scene.start('MainMenu');
+        });
     }
 }
