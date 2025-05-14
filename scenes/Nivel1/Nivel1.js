@@ -4,6 +4,7 @@ import { createGoombas } from "../../entities/Goomba.js";
 import { updateCharacterBehaviors } from "../../gameMechanics/characterUpdates.js";
 import { handleCollisions } from "../../gameMechanics/collisions.js";
 import { loadAssets1 } from "../../assets/assets.js";
+import { saveUserScore } from "../../gameMechanics/scoreTracking.js";
 
 export class Nivel1 extends Phaser.Scene {
     constructor() {
@@ -22,6 +23,7 @@ export class Nivel1 extends Phaser.Scene {
         this.endY = 0;
         this.totalDistance = 0;
         this.lastProgressPercent = 0;
+        this.startTime = 0;
     }
 
     preload() {
@@ -353,6 +355,9 @@ export class Nivel1 extends Phaser.Scene {
 
         // Configurar controles - Asegurarse de que se crean nuevos controles cada vez
         this.keys = this.input.keyboard.createCursorKeys();
+        
+        // Registrar el tiempo de inicio del nivel
+        this.startTime = this.time.now;
         // Reproducir música de fondo
         try {
             this.sound.add('theme', { volume: 0.5, loop: true }).play();
@@ -493,6 +498,14 @@ export class Nivel1 extends Phaser.Scene {
             console.warn("No se pudo reproducir el sonido de victoria:", error);
         }
         
+        // Calcular puntuación basada en el tiempo y progreso
+        const timeElapsed = (this.time.now - this.startTime) / 1000; // Tiempo en segundos
+        const timeBonus = Math.max(0, 1000 - timeElapsed); // Bonus por tiempo rápido
+        const score = Math.floor(10000 + timeBonus); // Puntuación base + bonus
+        
+        // Guardar la puntuación si hay un usuario conectado
+        saveUserScore(score);
+        
         // Crear un fondo semitransparente
         const overlay = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x000000, 0.7)
             .setOrigin(0, 0)
@@ -505,7 +518,7 @@ export class Nivel1 extends Phaser.Scene {
             .setStrokeStyle(4, 0xffff00);
         
         // Título de felicitación
-        const congratsText = this.add.text(640, 220, '¡FELICIDADES!', {
+        const congratsText = this.add.text(640, 200, '¡FELICIDADES!', {
             fontSize: '48px',
             fill: '#ffff00',
             fontFamily: 'Arial',
@@ -514,7 +527,7 @@ export class Nivel1 extends Phaser.Scene {
         }).setOrigin(0.5).setScrollFactor(0);
         
         // Mensaje de completado
-        const messageText = this.add.text(640, 300, 'Has completado el Nivel 1', {
+        const messageText = this.add.text(640, 270, 'Has completado el Nivel 1', {
             fontSize: '32px',
             fill: '#ffffff',
             fontFamily: 'Arial',
@@ -522,8 +535,17 @@ export class Nivel1 extends Phaser.Scene {
             strokeThickness: 4
         }).setOrigin(0.5).setScrollFactor(0);
         
+        // Mostrar puntuación
+        const scoreText = this.add.text(640, 330, `Puntuación: ${score}`, {
+            fontSize: '28px',
+            fill: '#ffffff',
+            fontFamily: 'Arial',
+            stroke: '#000',
+            strokeThickness: 3
+        }).setOrigin(0.5).setScrollFactor(0);
+        
         // Pregunta para el siguiente nivel
-        const questionText = this.add.text(640, 380, '¿Quieres pasar al siguiente nivel?', {
+        const questionText = this.add.text(640, 390, '¿Quieres pasar al siguiente nivel?', {
             fontSize: '28px',
             fill: '#ffffff',
             fontFamily: 'Arial',
@@ -591,4 +613,5 @@ export class Nivel1 extends Phaser.Scene {
             this.scene.start('MainMenu');
         });
     }
+    
 }

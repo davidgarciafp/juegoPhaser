@@ -3,6 +3,8 @@ import { loadAssets1 } from '../assets/assets.js';
 export class MainMenu extends Phaser.Scene {
     constructor() {
         super({ key: 'MainMenu' });
+        this.currentUser = null;
+        this.apiUrl = 'http://localhost:3000/api';
     }
 
     preload() {
@@ -41,8 +43,11 @@ export class MainMenu extends Phaser.Scene {
         this.load.audio('menu-music', 'assets/sounds/menu-music.mp3');
     }
 
-    create() {
+    async create() {
         console.log("MainMenu: create iniciado");
+        
+        // Cargar el usuario actual
+        await this.loadCurrentUser();
         
         // Añadir fondo del menú (o un color de fondo si la imagen no está disponible)
         try {
@@ -65,6 +70,9 @@ export class MainMenu extends Phaser.Scene {
                 strokeThickness: 6
             }).setOrigin(0.5);
         }
+        
+        // Mostrar información del usuario
+        this.displayUserInfo();
         
         // Reproducir música del menú
         try {
@@ -143,7 +151,111 @@ export class MainMenu extends Phaser.Scene {
             strokeThickness: 4
         }).setOrigin(0.5);
         
+        // Añadir botón para cerrar sesión
+        if (this.currentUser) {
+            const logoutButton = this.add.rectangle(1180, 50, 180, 50, 0xaa0000)
+                .setStrokeStyle(2, 0xffffff)
+                .setInteractive();
+            
+            const logoutText = this.add.text(1180, 50, 'CERRAR SESIÓN', {
+                fontSize: '18px',
+                fill: '#fff',
+                fontFamily: 'Arial',
+                stroke: '#000',
+                strokeThickness: 2
+            }).setOrigin(0.5);
+            
+            // Efectos de hover para el botón de cerrar sesión
+            logoutButton.on('pointerover', () => {
+                logoutButton.fillColor = 0xff0000;
+                logoutText.setFontSize(20);
+            });
+            
+            logoutButton.on('pointerout', () => {
+                logoutButton.fillColor = 0xaa0000;
+                logoutText.setFontSize(18);
+            });
+            
+            // Acción del botón de cerrar sesión
+            logoutButton.on('pointerdown', () => {
+                this.logout();
+            });
+        }
+        
         console.log("MainMenu: create completado");
+    }
+    
+    displayUserInfo() {
+        // Mostrar información del usuario si hay uno conectado
+        if (this.currentUser) {
+            // Fondo para la información del usuario
+            this.add.rectangle(200, 50, 300, 70, 0x000000, 0.7)
+                .setStrokeStyle(2, 0xffffff);
+            
+            // Nombre de usuario
+            this.add.text(200, 35, `Usuario: ${this.currentUser.username}`, {
+                fontSize: '20px',
+                fill: '#fff',
+                fontFamily: 'Arial'
+            }).setOrigin(0.5, 0.5);
+            
+            // Mejor puntuación (si existe)
+            let bestScore = 0;
+            if (this.currentUser.scores && this.currentUser.scores.length > 0) {
+                bestScore = Math.max(...this.currentUser.scores);
+            }
+            
+            this.add.text(200, 65, `Mejor puntuación: ${bestScore}`, {
+                fontSize: '20px',
+                fill: '#fff',
+                fontFamily: 'Arial'
+            }).setOrigin(0.5, 0.5);
+        } else {
+            // Mensaje para usuario invitado
+            this.add.rectangle(200, 50, 300, 50, 0x000000, 0.7)
+                .setStrokeStyle(2, 0xffffff);
+            
+            this.add.text(200, 50, 'Jugando como invitado', {
+                fontSize: '20px',
+                fill: '#fff',
+                fontFamily: 'Arial'
+            }).setOrigin(0.5, 0.5);
+        }
+    }
+    
+    async loadCurrentUser() {
+        try {
+            const userJson = localStorage.getItem('currentUser');
+            if (!userJson) {
+                this.currentUser = null;
+                return;
+            }
+            
+            this.currentUser = JSON.parse(userJson);
+            
+            // Si hay un usuario conectado, obtener sus puntuaciones actualizadas
+            if (this.currentUser && this.currentUser._id) {
+                const response = await fetch(`${this.apiUrl}/scores/${this.currentUser._id}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    this.currentUser.scores = data.scores;
+                    localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+                }
+            }
+        } catch (error) {
+            console.error('Error al cargar usuario actual:', error);
+            this.currentUser = null;
+        }
+    }
+    
+    logout() {
+        // Eliminar el usuario actual
+        this.currentUser = null;
+        localStorage.removeItem('currentUser');
+        
+        // Volver a la pantalla de login
+        this.scene.start('LoginScene');
     }
     
     // Método para limpiar la escena antes de cambiar a otra
