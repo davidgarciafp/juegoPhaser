@@ -3,6 +3,7 @@ export class LoginScene extends Phaser.Scene {
         super({ key: 'LoginScene' });
         this.currentUser = null;
         this.isRegistering = false;
+        this.isAdminLogin = false;
         this.apiUrl = 'http://localhost:3000/api'; // URL base de la API
     }
 
@@ -11,6 +12,7 @@ export class LoginScene extends Phaser.Scene {
         this.load.image('login-background', 'assets/images/login-background.png');
         this.load.image('input-field', 'assets/images/input-field.png');
         this.load.image('button', 'assets/images/button.png');
+        this.load.image('admin-icon', 'assets/images/admin-icon.png');
     }
 
     create() {
@@ -25,7 +27,8 @@ export class LoginScene extends Phaser.Scene {
         }
         
         // Título
-        this.add.text(640, 100, 'SUPER MARIO BROS', {
+        const titleText = this.isAdminLogin ? 'ADMINISTRACIÓN' : 'JUMP OR DIE';
+        this.add.text(640, 100, titleText, {
             fontSize: '48px',
             fill: '#fff',
             fontFamily: 'Arial',
@@ -34,7 +37,10 @@ export class LoginScene extends Phaser.Scene {
         }).setOrigin(0.5);
         
         // Subtítulo
-        const subtitleText = this.isRegistering ? 'REGISTRO' : 'INICIAR SESIÓN';
+        let subtitleText = 'INICIAR SESIÓN';
+        if (this.isRegistering) subtitleText = 'REGISTRO';
+        if (this.isAdminLogin) subtitleText = 'ACCESO ADMINISTRADOR';
+        
         this.subtitleText = this.add.text(640, 180, subtitleText, {
             fontSize: '36px',
             fill: '#fff',
@@ -58,7 +64,68 @@ export class LoginScene extends Phaser.Scene {
             strokeThickness: 2
         }).setOrigin(0.5);
         
+        // Verificar conexión con el servidor
+        this.checkServerConnection();
+        
+        // Botón de administración (solo visible en la pantalla de login normal)
+        if (!this.isRegistering && !this.isAdminLogin) {
+            this.createAdminButton();
+        }
+        
         console.log("LoginScene: create completado");
+    }
+    
+    createAdminButton() {
+        // Crear un botón pequeño en la esquina para acceder al login de administrador
+        try {
+            const adminButton = this.add.image(1230, 50, 'admin-icon')
+                .setScale(0.5)
+                .setInteractive();
+                
+            adminButton.on('pointerdown', () => {
+                this.isAdminLogin = true;
+                this.scene.restart();
+            });
+        } catch (error) {
+            // Si no se puede cargar la imagen, crear un botón rectangular
+            const adminButton = this.add.rectangle(1230, 50, 60, 60, 0x333333)
+                .setStrokeStyle(2, 0xffffff)
+                .setInteractive();
+                
+            const adminText = this.add.text(1230, 50, 'A', {
+                fontSize: '24px',
+                fill: '#ffffff',
+                fontFamily: 'Arial'
+            }).setOrigin(0.5);
+            
+            adminButton.on('pointerover', () => {
+                adminButton.fillColor = 0x555555;
+            });
+            
+            adminButton.on('pointerout', () => {
+                adminButton.fillColor = 0x333333;
+            });
+            
+            adminButton.on('pointerdown', () => {
+                this.isAdminLogin = true;
+                this.scene.restart();
+            });
+        }
+    }
+    
+    async checkServerConnection() {
+        try {
+            const response = await fetch(`${this.apiUrl}/test`);
+            if (response.ok) {
+                console.log('Conexión con el servidor establecida correctamente');
+            } else {
+                this.showStatusMessage('No se pudo conectar con el servidor. Algunas funciones pueden no estar disponibles.', '#ff9900');
+                console.error('Error al conectar con el servidor:', await response.text());
+            }
+        } catch (error) {
+            this.showStatusMessage('No se pudo conectar con el servidor. Algunas funciones pueden no estar disponibles.', '#ff9900');
+            console.error('Error al conectar con el servidor:', error);
+        }
     }
     
     createInputFields() {
@@ -139,9 +206,16 @@ export class LoginScene extends Phaser.Scene {
     }
     
     createButtons() {
-        // Botón principal (Login o Registro)
-        const mainButtonY = this.isRegistering ? 500 : 420;
-        const mainButtonText = this.isRegistering ? 'REGISTRARSE' : 'INICIAR SESIÓN';
+        // Botón principal (Login, Registro o Admin Login)
+        let mainButtonY = 420;
+        let mainButtonText = 'INICIAR SESIÓN';
+        
+        if (this.isRegistering) {
+            mainButtonY = 500;
+            mainButtonText = 'REGISTRARSE';
+        } else if (this.isAdminLogin) {
+            mainButtonText = 'ACCEDER COMO ADMIN';
+        }
         
         const mainButton = this.add.rectangle(640, mainButtonY, 300, 60, 0x00aa00)
             .setStrokeStyle(2, 0xffffff)
@@ -170,20 +244,24 @@ export class LoginScene extends Phaser.Scene {
         mainButton.on('pointerdown', () => {
             if (this.isRegistering) {
                 this.register();
+            } else if (this.isAdminLogin) {
+                this.adminLogin();
             } else {
                 this.login();
             }
         });
         
-        // Botón secundario (Cambiar a Registro o Login)
-        const secondaryButtonY = this.isRegistering ? 580 : 500;
-        const secondaryButtonText = this.isRegistering ? 'VOLVER A LOGIN' : 'CREAR CUENTA';
-        
-        const secondaryButton = this.add.rectangle(640, secondaryButtonY, 300, 60, 0x0000aa)
-            .setStrokeStyle(2, 0xffffff)
-            .setInteractive();
-        
-        const secondaryButtonLabel = this.add.text(640, secondaryButtonY, secondaryButtonText, {
+        // Botones secundarios (solo si no estamos en modo admin)
+        if (!this.isAdminLogin) {
+            // Botón secundario (Cambiar a Registro o Login)
+            const secondaryButtonY = this.isRegistering ? 580 : 500;
+            const secondaryButtonText = this.isRegistering ? 'VOLVER A LOGIN' : 'CREAR CUENTA';
+            
+            const secondaryButton = this.add.rectangle(640, secondaryButtonY, 300, 60, 0x0000aa)
+                .setStrokeStyle(2, 0xffffff)
+                .setInteractive();
+            
+            const secondaryButtonLabel = this.add.text(640, secondaryButtonY, secondaryButtonText, {
             fontSize: '28px',
             fill: '#fff',
             fontFamily: 'Arial',
@@ -202,20 +280,20 @@ export class LoginScene extends Phaser.Scene {
             secondaryButtonLabel.setFontSize(28);
         });
         
-        // Acción del botón secundario
-        secondaryButton.on('pointerdown', () => {
-            this.isRegistering = !this.isRegistering;
-            this.scene.restart();
-        });
-        
-        // Botón para jugar sin cuenta
-        const guestButtonY = this.isRegistering ? 660 : 580;
-        
-        const guestButton = this.add.rectangle(640, guestButtonY, 300, 60, 0xaa0000)
-            .setStrokeStyle(2, 0xffffff)
-            .setInteractive();
-        
-        const guestButtonLabel = this.add.text(640, guestButtonY, 'JUGAR SIN CUENTA', {
+            // Acción del botón secundario
+            secondaryButton.on('pointerdown', () => {
+                this.isRegistering = !this.isRegistering;
+                this.scene.restart();
+            });
+            
+            // Botón para jugar sin cuenta
+            const guestButtonY = this.isRegistering ? 660 : 580;
+            
+            const guestButton = this.add.rectangle(640, guestButtonY, 300, 60, 0xaa0000)
+                .setStrokeStyle(2, 0xffffff)
+                .setInteractive();
+            
+            const guestButtonLabel = this.add.text(640, guestButtonY, 'JUGAR SIN CUENTA', {
             fontSize: '28px',
             fill: '#fff',
             fontFamily: 'Arial',
@@ -223,21 +301,52 @@ export class LoginScene extends Phaser.Scene {
             strokeThickness: 3
         }).setOrigin(0.5);
         
-        // Efectos de hover para el botón de invitado
-        guestButton.on('pointerover', () => {
-            guestButton.fillColor = 0xff0000;
-            guestButtonLabel.setFontSize(32);
-        });
-        
-        guestButton.on('pointerout', () => {
-            guestButton.fillColor = 0xaa0000;
-            guestButtonLabel.setFontSize(28);
-        });
-        
-        // Acción del botón de invitado
-        guestButton.on('pointerdown', () => {
-            this.playAsGuest();
-        });
+                // Efectos de hover para el botón de invitado
+                guestButton.on('pointerover', () => {
+                    guestButton.fillColor = 0xff0000;
+                    guestButtonLabel.setFontSize(32);
+                });
+                
+                guestButton.on('pointerout', () => {
+                    guestButton.fillColor = 0xaa0000;
+                    guestButtonLabel.setFontSize(28);
+                });
+                
+                // Acción del botón de invitado
+                guestButton.on('pointerdown', () => {
+                    this.playAsGuest();
+                });
+        } else {
+            // Si estamos en modo admin, añadir botón para volver al login normal
+            const backButton = this.add.rectangle(640, 500, 300, 60, 0xaa0000)
+                .setStrokeStyle(2, 0xffffff)
+                .setInteractive();
+            
+            const backButtonLabel = this.add.text(640, 500, 'VOLVER', {
+                fontSize: '28px',
+                fill: '#fff',
+                fontFamily: 'Arial',
+                stroke: '#000',
+                strokeThickness: 3
+            }).setOrigin(0.5);
+            
+            // Efectos de hover para el botón de volver
+            backButton.on('pointerover', () => {
+                backButton.fillColor = 0xff0000;
+                backButtonLabel.setFontSize(32);
+            });
+            
+            backButton.on('pointerout', () => {
+                backButton.fillColor = 0xaa0000;
+                backButtonLabel.setFontSize(28);
+            });
+            
+            // Acción del botón de volver
+            backButton.on('pointerdown', () => {
+                this.isAdminLogin = false;
+                this.scene.restart();
+            });
+        }
     }
     
     promptUsername() {
@@ -268,6 +377,51 @@ export class LoginScene extends Phaser.Scene {
             this.confirmPasswordText.setText('*'.repeat(confirmPassword.length));
             // Guardar la contraseña real en una propiedad no visible
             this.confirmPasswordText.realPassword = confirmPassword;
+        }
+    }
+    
+    async adminLogin() {
+        const username = this.usernameText.text;
+        const password = this.passwordText.realPassword || '';
+        
+        if (!username || !password) {
+            this.showStatusMessage('Por favor, introduce usuario y contraseña.', '#ff0000');
+            return;
+        }
+        
+        try {
+            // Mostrar mensaje de carga
+            this.showStatusMessage('Verificando credenciales de administrador...', '#ffffff');
+            
+            // Hacer petición a la API de login de administrador
+            const response = await fetch(`${this.apiUrl}/admin/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Credenciales de administrador incorrectas');
+            }
+            
+            // Login exitoso
+            this.showStatusMessage('Login de administrador exitoso. Redirigiendo...', '#00ff00');
+            
+            // Guardar información del administrador
+            localStorage.setItem('adminUser', JSON.stringify(data.admin));
+            localStorage.setItem('isAdmin', 'true');
+            
+            // Esperar un momento antes de redirigir
+            setTimeout(() => {
+                this.scene.start('AdminScene');
+            }, 1000);
+        } catch (error) {
+            console.error('Error en login de administrador:', error);
+            this.showStatusMessage(error.message || 'Error al iniciar sesión como administrador', '#ff0000');
         }
     }
     
@@ -310,7 +464,12 @@ export class LoginScene extends Phaser.Scene {
             }, 1000);
         } catch (error) {
             console.error('Error en login:', error);
-            this.showStatusMessage(error.message || 'Error al iniciar sesión', '#ff0000');
+            this.showStatusMessage(error.message || 'Error al iniciar sesión. Intenta jugar sin cuenta.', '#ff0000');
+            
+            // Si hay un error de conexión, mostrar un botón para jugar sin cuenta
+            if (error.message.includes('fetch') || error.message.includes('network')) {
+                this.showPlayAsGuestButton();
+            }
         }
     }
     
@@ -333,6 +492,8 @@ export class LoginScene extends Phaser.Scene {
             // Mostrar mensaje de carga
             this.showStatusMessage('Registrando usuario...', '#ffffff');
             
+            console.log('Enviando datos de registro:', { username, password: '***' });
+            
             // Hacer petición a la API
             const response = await fetch(`${this.apiUrl}/register`, {
                 method: 'POST',
@@ -342,7 +503,18 @@ export class LoginScene extends Phaser.Scene {
                 body: JSON.stringify({ username, password })
             });
             
-            const data = await response.json();
+            // Intentar obtener la respuesta como JSON
+            let data;
+            try {
+                data = await response.json();
+            } catch (e) {
+                console.error('Error al parsear respuesta JSON:', e);
+                const text = await response.text();
+                console.log('Respuesta como texto:', text);
+                throw new Error('Error al procesar la respuesta del servidor');
+            }
+            
+            console.log('Respuesta del servidor:', data);
             
             if (!response.ok) {
                 throw new Error(data.message || 'Error al registrar usuario');
@@ -359,14 +531,51 @@ export class LoginScene extends Phaser.Scene {
             }, 1000);
         } catch (error) {
             console.error('Error en registro:', error);
-            this.showStatusMessage(error.message || 'Error al registrar usuario', '#ff0000');
+            this.showStatusMessage(error.message || 'Error al registrar usuario. Intenta jugar sin cuenta.', '#ff0000');
+            
+            // Si hay un error de conexión, mostrar un botón para jugar sin cuenta
+            if (error.message.includes('fetch') || error.message.includes('network')) {
+                this.showPlayAsGuestButton();
+            }
         }
+    }
+    
+    showPlayAsGuestButton() {
+        // Crear un botón especial para jugar sin cuenta cuando hay problemas de conexión
+        const guestButton = this.add.rectangle(640, 700, 400, 60, 0xff5500)
+            .setStrokeStyle(2, 0xffffff)
+            .setInteractive();
+        
+        const guestButtonLabel = this.add.text(640, 700, 'JUGAR SIN CONEXIÓN', {
+            fontSize: '28px',
+            fill: '#fff',
+            fontFamily: 'Arial',
+            stroke: '#000',
+            strokeThickness: 3
+        }).setOrigin(0.5);
+        
+        // Efectos de hover
+        guestButton.on('pointerover', () => {
+            guestButton.fillColor = 0xff7700;
+            guestButtonLabel.setFontSize(32);
+        });
+        
+        guestButton.on('pointerout', () => {
+            guestButton.fillColor = 0xff5500;
+            guestButtonLabel.setFontSize(28);
+        });
+        
+        // Acción del botón
+        guestButton.on('pointerdown', () => {
+            this.playAsGuest();
+        });
     }
     
     playAsGuest() {
         // Jugar sin cuenta
         this.currentUser = null;
         localStorage.removeItem('currentUser');
+        localStorage.removeItem('isAdmin');
         this.scene.start('MainMenu');
     }
     

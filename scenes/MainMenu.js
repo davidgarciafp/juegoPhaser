@@ -91,10 +91,10 @@ export class MainMenu extends Phaser.Scene {
             }
         }
         
-        // Crear un botón para iniciar el juego
-        const startButton = this.add.rectangle(640, 400, 300, 100, 0x00aa00);
-        const startText = this.add.text(640, 400, 'INICIAR JUEGO', {
-            fontSize: '32px',
+        // Crear un botón para iniciar el juego (Nivel 1)
+        const startButton = this.add.rectangle(640, 360, 300, 80, 0x00aa00);
+        const startText = this.add.text(640, 360, 'INICIAR NIVEL 1', {
+            fontSize: '28px',
             fill: '#fff',
             fontFamily: 'Arial',
             stroke: '#000',
@@ -105,11 +105,11 @@ export class MainMenu extends Phaser.Scene {
         startButton.setInteractive();
         startButton.on('pointerover', () => {
             startButton.fillColor = 0x00ff00;
-            startText.setFontSize(36);
+            startText.setFontSize(32);
         });
         startButton.on('pointerout', () => {
             startButton.fillColor = 0x00aa00;
-            startText.setFontSize(32);
+            startText.setFontSize(28);
         });
         startButton.on('pointerdown', () => {
             console.log("Iniciando Nivel1...");
@@ -126,8 +126,78 @@ export class MainMenu extends Phaser.Scene {
             });
         });
         
+        // Botón para Nivel 3
+        const nivel3Button = this.add.rectangle(640, 450, 300, 80, 0x9944ff)
+            .setStrokeStyle(2, 0xffffff)
+            .setInteractive();
+
+        const nivel3Text = this.add.text(640, 450, 'NIVEL 3', {
+            fontSize: '28px',
+            fill: '#fff',
+            fontFamily: 'Arial',
+            stroke: '#000',
+            strokeThickness: 3
+        }).setOrigin(0.5);
+
+        // Efectos de hover
+        nivel3Button.on('pointerover', () => {
+            nivel3Button.fillColor = 0xaa66ff;
+            nivel3Text.setFontSize(32);
+        });
+
+        nivel3Button.on('pointerout', () => {
+            nivel3Button.fillColor = 0x9944ff;
+            nivel3Text.setFontSize(28);
+        });
+
+        // Acción del botón
+        nivel3Button.on('pointerdown', () => {
+            console.log("Iniciando Nivel3...");
+            
+            // Detener la música antes de cambiar de escena
+            this.sound.stopAll();
+            
+            // Limpiar la escena actual
+            this.cleanupScene();
+            
+            // Iniciar el Nivel3
+            this.time.delayedCall(100, () => {
+                this.scene.start('Nivel3', { score: 0 });
+            });
+        });
+        
+        // Crear un botón para ver la clasificación
+        const leaderboardButton = this.add.rectangle(640, 540, 300, 80, 0x0000aa);
+        const leaderboardText = this.add.text(640, 540, 'CLASIFICACIÓN', {
+            fontSize: '28px',
+            fill: '#fff',
+            fontFamily: 'Arial',
+            stroke: '#000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        // Hacer el botón interactivo
+        leaderboardButton.setInteractive();
+        leaderboardButton.on('pointerover', () => {
+            leaderboardButton.fillColor = 0x0000ff;
+            leaderboardText.setFontSize(32);
+        });
+        leaderboardButton.on('pointerout', () => {
+            leaderboardButton.fillColor = 0x0000aa;
+            leaderboardText.setFontSize(28);
+        });
+        leaderboardButton.on('pointerdown', () => {
+            console.log("Mostrando clasificación...");
+            
+            // Detener la música antes de cambiar de escena
+            this.sound.stopAll();
+            
+            // Iniciar la escena de clasificación
+            this.scene.start('LeaderboardScene');
+        });
+        
         // Añadir texto de instrucciones
-        this.add.text(640, 550, 'Usa las flechas para moverte', {
+        this.add.text(640, 620, 'Usa las flechas para moverte', {
             fontSize: '24px',
             fill: '#fff',
             fontFamily: 'Arial',
@@ -135,7 +205,7 @@ export class MainMenu extends Phaser.Scene {
             strokeThickness: 4
         }).setOrigin(0.5);
         
-        this.add.text(640, 600, 'Flecha arriba para saltar', {
+        this.add.text(640, 670, 'Flecha arriba para saltar', {
             fontSize: '24px',
             fill: '#fff',
             fontFamily: 'Arial',
@@ -143,7 +213,7 @@ export class MainMenu extends Phaser.Scene {
             strokeThickness: 4
         }).setOrigin(0.5);
         
-        this.add.text(640, 650, 'Shift + flechas para correr', {
+        this.add.text(640, 720, 'Shift + flechas para correr', {
             fontSize: '24px',
             fill: '#fff',
             fontFamily: 'Arial',

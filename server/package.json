@@ -1,7 +1,7 @@
 {
-  "name": "mario-game-server",
+  "name": "juego-phaser-server",
   "version": "1.0.0",
-  "description": "Servidor para el juego de Mario Bros",
+  "description": "Servidor para el juego de Mario Bros con MongoDB",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
