@@ -10,7 +10,7 @@ export class AdminScene extends Phaser.Scene {
 
     preload() {
         // Cargar recursos para la pantalla de administración
-        this.load.image('admin-background', 'assets/images/menu-background.png');
+        this.load.image('admin-background', 'assets/Logo.png');
     }
 
     create() {

@@ -9,10 +9,10 @@ export class LoginScene extends Phaser.Scene {
 
     preload() {
         // Cargar recursos para la pantalla de login
-        this.load.image('login-background', 'assets/images/login-background.png');
+        this.load.image('login-background', 'assets/Logo.png');
         this.load.image('input-field', 'assets/images/input-field.png');
         this.load.image('button', 'assets/images/button.png');
-        this.load.image('admin-icon', 'assets/images/admin-icon.png');
+        this.load.image('admin-icon', 'assets/hud/gear.png');
     }
 
     create() {
@@ -20,7 +20,7 @@ export class LoginScene extends Phaser.Scene {
         
         // Añadir fondo
         try {
-            this.add.image(640, 360, 'login-background').setScale(1);
+            this.add.image(240, 360, 'login-background').setScale(1);
         } catch (error) {
             console.warn("No se pudo cargar el fondo del login:", error);
             this.cameras.main.setBackgroundColor('#000055');
@@ -79,7 +79,7 @@ export class LoginScene extends Phaser.Scene {
         // Crear un botón pequeño en la esquina para acceder al login de administrador
         try {
             const adminButton = this.add.image(1230, 50, 'admin-icon')
-                .setScale(0.5)
+                .setScale(0.1)
                 .setInteractive();
                 
             adminButton.on('pointerdown', () => {

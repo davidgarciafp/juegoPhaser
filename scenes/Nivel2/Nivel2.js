@@ -609,9 +609,6 @@ export class Nivel2 extends Phaser.Scene {
         const difficultyBonus = 5000; // Bonus adicional por ser nivel 2
         const score = Math.floor(15000 + timeBonus + difficultyBonus); // Puntuación base + bonus
         
-        // Guardar la puntuación si hay un usuario conectado
-        saveUserScore(score);
-        
         // Crear un fondo semitransparente
         const overlay = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x000000, 0.7)
             .setOrigin(0, 0)
@@ -624,7 +621,7 @@ export class Nivel2 extends Phaser.Scene {
             .setStrokeStyle(4, 0xffff00);
         
         // Título de felicitación
-        const congratsText = this.add.text(640, 200, '¡FELICIDADES!', {
+        const congratsText = this.add.text(640, 200, '¡NIVEL COMPLETADO!', {
             fontSize: '48px',
             fill: '#ffff00',
             fontFamily: 'Arial',
@@ -650,8 +647,14 @@ export class Nivel2 extends Phaser.Scene {
             strokeThickness: 3
         }).setOrigin(0.5).setScrollFactor(0);
         
-        // Mensaje final
-        const finalText = this.add.text(640, 390, '¡Has superado todos los niveles!', {
+        // Botón para continuar al siguiente nivel
+        const nextLevelButton = this.add.rectangle(640, 400, 300, 60, 0x00aa00)
+            .setStrokeStyle(2, 0xffffff)
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setInteractive();
+        
+        const nextLevelText = this.add.text(640, 400, 'SIGUIENTE NIVEL', {
             fontSize: '28px',
             fill: '#ffffff',
             fontFamily: 'Arial',
@@ -659,33 +662,54 @@ export class Nivel2 extends Phaser.Scene {
             strokeThickness: 3
         }).setOrigin(0.5).setScrollFactor(0);
         
+        // Efectos de hover para el botón de siguiente nivel
+        nextLevelButton.on('pointerover', () => {
+            nextLevelButton.fillColor = 0x00ff00;
+            nextLevelText.setFontSize(32);
+        });
+        
+        nextLevelButton.on('pointerout', () => {
+            nextLevelButton.fillColor = 0x00aa00;
+            nextLevelText.setFontSize(28);
+        });
+        
+        // Acción del botón de siguiente nivel
+        nextLevelButton.on('pointerdown', () => {
+            // Pasar al Nivel 3 con la puntuación actual
+            this.scene.start('Nivel3', { score: score });
+        });
+        
         // Botón para volver al menú
-        const menuButton = this.add.rectangle(640, 460, 300, 80, 0x00aa00)
+        const menuButton = this.add.rectangle(640, 480, 300, 60, 0x0000aa)
+            .setStrokeStyle(2, 0xffffff)
             .setOrigin(0.5)
             .setScrollFactor(0)
             .setInteractive();
         
-        const menuText = this.add.text(640, 460, 'VOLVER AL MENÚ', {
-            fontSize: '32px',
+        const menuText = this.add.text(640, 480, 'VOLVER AL MENÚ', {
+            fontSize: '28px',
             fill: '#ffffff',
             fontFamily: 'Arial',
             stroke: '#000',
-            strokeThickness: 4
+            strokeThickness: 3
         }).setOrigin(0.5).setScrollFactor(0);
         
-        // Efectos de hover para el botón
+        // Efectos de hover para el botón de menú
         menuButton.on('pointerover', () => {
-            menuButton.fillColor = 0x00ff00;
-            menuText.setFontSize(36);
-        });
-        
-        menuButton.on('pointerout', () => {
-            menuButton.fillColor = 0x00aa00;
+            menuButton.fillColor = 0x0000ff;
             menuText.setFontSize(32);
         });
         
-        // Acción del botón
+        menuButton.on('pointerout', () => {
+            menuButton.fillColor = 0x0000aa;
+            menuText.setFontSize(28);
+        });
+        
+        // Acción del botón de menú
         menuButton.on('pointerdown', () => {
+            // Guardar puntuación
+            saveUserScore(score);
+            
             // Volver al menú principal
             this.scene.start('MainMenu');
         });

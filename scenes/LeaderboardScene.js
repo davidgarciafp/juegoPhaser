@@ -9,7 +9,7 @@ export class LeaderboardScene extends Phaser.Scene {
 
     preload() {
         // Cargar recursos para la pantalla de clasificación
-        this.load.image('leaderboard-background', 'assets/images/menu-background.png');
+        this.load.image('leaderboard-background', 'assets/Logo.png');
     }
 
     create() {
