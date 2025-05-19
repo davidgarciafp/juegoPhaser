@@ -8,7 +8,7 @@ export class GoombaSpawner {
     setupGoombaSpawner() {
         // Crear un temporizador que genere goombas cada cierto tiempo
         this.scene.goombaSpawnTimer = this.scene.time.addEvent({
-            delay: 5000, // Generar goombas cada 5 segundos
+            delay: 10000, // Generar goombas cada 5 segundos
             callback: this.spawnTopGoombas,
             callbackScope: this,
             loop: true
@@ -20,7 +20,7 @@ export class GoombaSpawner {
         if (this.scene.levelCompleted || this.scene.mario.isDead) return;
         
         // Generar entre 2 y 5 goombas cada vez
-        const goombasToSpawn = Phaser.Math.Between(2, 5);
+        const goombasToSpawn = Phaser.Math.Between(1, 3);
         
         for (let i = 0; i < goombasToSpawn; i++) {
             this.spawnSingleTopGoomba();

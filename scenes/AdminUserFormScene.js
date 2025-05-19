@@ -5,6 +5,7 @@ export class AdminUserFormScene extends Phaser.Scene {
         this.mode = 'create'; // 'create' o 'edit'
         this.user = null;
         this.onComplete = null;
+        this.activeInput = null; // Para rastrear qué campo está activo
     }
 
     init(data) {
@@ -45,54 +46,148 @@ export class AdminUserFormScene extends Phaser.Scene {
             stroke: '#000',
             strokeThickness: 2
         }).setOrigin(0.5);
+        
+        // Configurar entrada de teclado
+        this.setupKeyboardInput();
+    }
+    
+    setupKeyboardInput() {
+        // Configurar el evento de teclado para capturar la entrada
+        this.input.keyboard.on('keydown', (event) => {
+            // Solo procesar si hay un campo activo
+            if (this.activeInput) {
+                if (event.keyCode === 8) {
+                    // Tecla de retroceso (borrar)
+                    this.handleBackspace();
+                } else if (event.keyCode === 13) {
+                    // Tecla Enter (confirmar)
+                    this.handleEnter();
+                } else if (event.keyCode === 9) {
+                    // Tecla Tab (cambiar campo)
+                    event.preventDefault();
+                    this.handleTab();
+                } else if (event.keyCode >= 32 && event.keyCode <= 126) {
+                    // Caracteres imprimibles
+                    this.handleCharacter(event.key);
+                }
+            }
+        });
+    }
+    
+    handleBackspace() {
+        if (this.activeInput === this.usernameInput) {
+            // Borrar último carácter del nombre de usuario
+            if (this.usernameText.text.length > 0) {
+                this.usernameText.setText(this.usernameText.text.slice(0, -1));
+            }
+        } else if (this.activeInput === this.passwordInput) {
+            // Borrar último carácter de la contraseña
+            if (this.passwordInput.realPassword && this.passwordInput.realPassword.length > 0) {
+                this.passwordInput.realPassword = this.passwordInput.realPassword.slice(0, -1);
+                this.passwordText.setText('*'.repeat(this.passwordInput.realPassword.length));
+            }
+        }
+    }
+    
+    handleEnter() {
+        // Cambiar al siguiente campo o enviar el formulario
+        if (this.activeInput === this.usernameInput) {
+            this.setActiveInput(this.passwordInput);
+        } else if (this.activeInput === this.passwordInput) {
+            // Enviar formulario
+            this.saveUser();
+        }
+    }
+    
+    handleTab() {
+        // Cambiar al siguiente campo
+        if (this.activeInput === this.usernameInput) {
+            this.setActiveInput(this.passwordInput);
+        } else if (this.activeInput === this.passwordInput) {
+            this.setActiveInput(this.usernameInput);
+        }
+    }
+    
+    handleCharacter(char) {
+        // Añadir carácter al campo activo
+        if (this.activeInput === this.usernameInput) {
+            // Limitar longitud del nombre de usuario
+            if (this.usernameText.text.length < 20) {
+                this.usernameText.setText(this.usernameText.text + char);
+            }
+        } else if (this.activeInput === this.passwordInput) {
+            // Limitar longitud de la contraseña
+            if (!this.passwordInput.realPassword) {
+                this.passwordInput.realPassword = '';
+            }
+            
+            if (this.passwordInput.realPassword.length < 20) {
+                this.passwordInput.realPassword += char;
+                this.passwordText.setText('*'.repeat(this.passwordInput.realPassword.length));
+            }
+        }
+    }
+    
+    setActiveInput(inputField) {
+        // Desactivar el campo anterior
+        if (this.activeInput) {
+            this.activeInput.setStrokeStyle(2, 0xffffff);
+        }
+        
+        // Activar el nuevo campo
+        this.activeInput = inputField;
+        
+        if (inputField) {
+            inputField.setStrokeStyle(3, 0x00ffff);
+        }
     }
     
     createFormFields() {
         // Campo de usuario
-        this.add.text(440, 230, 'Usuario:', {
+        this.add.text(440, 240, ' Usuario:', {
             fontSize: '22px',
             fill: '#ffffff',
             fontFamily: 'Arial'
         }).setOrigin(0, 0.5);
         
-        const userFieldBg = this.add.rectangle(640, 230, 400, 50, 0x000000, 0.5)
+        this.usernameInput = this.add.rectangle(640, 240, 400, 50, 0x000000, 0.5)
             .setStrokeStyle(2, 0xffffff)
             .setInteractive();
         
-        this.usernameText = this.add.text(640, 230, this.user ? this.user.username : '', {
+        this.usernameText = this.add.text(640, 240, this.user ? this.user.username : '', {
             fontSize: '20px',
             fill: '#ffffff',
             fontFamily: 'Arial'
         }).setOrigin(0.5);
         
-        userFieldBg.on('pointerdown', () => {
-            this.promptUsername();
+        this.usernameInput.on('pointerdown', () => {
+            this.setActiveInput(this.usernameInput);
         });
         
         // Campo de contraseña
-        this.add.text(440, 300, 'Contraseña:', {
+        this.add.text(440, 310, ' Contraseña:', {
             fontSize: '22px',
             fill: '#ffffff',
             fontFamily: 'Arial'
         }).setOrigin(0, 0.5);
         
-        const passwordFieldBg = this.add.rectangle(640, 300, 400, 50, 0x000000, 0.5)
+        this.passwordInput = this.add.rectangle(640, 310, 400, 50, 0x000000, 0.5)
             .setStrokeStyle(2, 0xffffff)
             .setInteractive();
         
-        this.passwordText = this.add.text(640, 300, '', {
+        this.passwordText = this.add.text(640, 310, '', {
             fontSize: '20px',
             fill: '#ffffff',
             fontFamily: 'Arial'
         }).setOrigin(0.5);
         
-        passwordFieldBg.on('pointerdown', () => {
-            this.promptPassword();
+        this.passwordInput.on('pointerdown', () => {
+            this.setActiveInput(this.passwordInput);
         });
         
         // Nota sobre la contraseña (solo en modo edición)
         if (this.mode === 'edit') {
-            this.add.text(640, 340, 'Dejar en blanco para mantener la contraseña actual', {
+            this.add.text(640, 350, 'Dejar en blanco para mantener la contraseña actual', {
                 fontSize: '16px',
                 fill: '#aaaaaa',
                 fontFamily: 'Arial'
@@ -122,6 +217,9 @@ export class AdminUserFormScene extends Phaser.Scene {
                 this.resetScoresCheckmark.visible = !this.resetScoresCheckmark.visible;
             });
         }
+        
+        // Activar el campo de usuario por defecto
+        this.setActiveInput(this.usernameInput);
     }
     
     createButtons() {
@@ -184,26 +282,10 @@ export class AdminUserFormScene extends Phaser.Scene {
         });
     }
     
-    promptUsername() {
-        const username = prompt('Introduce el nombre de usuario:', this.usernameText.text);
-        if (username !== null) {
-            this.usernameText.setText(username);
-        }
-    }
-    
-    promptPassword() {
-        const password = prompt('Introduce la contraseña:');
-        if (password !== null) {
-            // Mostrar asteriscos en lugar de la contraseña real
-            this.passwordText.setText('*'.repeat(password.length));
-            // Guardar la contraseña real en una propiedad no visible
-            this.passwordText.realPassword = password;
-        }
-    }
     
     async saveUser() {
         const username = this.usernameText.text;
-        const password = this.passwordText.realPassword || '';
+        const password = this.passwordInput.realPassword || '';
         
         if (!username) {
             this.statusMessage.setText('El nombre de usuario es obligatorio');

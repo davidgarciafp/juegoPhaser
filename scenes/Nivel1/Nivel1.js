@@ -176,7 +176,7 @@ export class Nivel1 extends Phaser.Scene {
             const sectionY = worldHeight - 300 - (section * sectionHeight);
             
             // REDUCIDO: Número de plataformas en esta sección (de 4-8 a 2-4)
-            const platformsInSection = Phaser.Math.Between(2, 4);
+            const platformsInSection = Phaser.Math.Between(3, 4);
             
             for (let p = 0; p < platformsInSection; p++) {
                 // Intentar colocar una plataforma hasta 10 veces
@@ -185,10 +185,10 @@ export class Nivel1 extends Phaser.Scene {
                 
                 while (!platformPlaced && attempts < 10) {
                     // Posición X aleatoria para la plataforma
-                    const platformX = Phaser.Math.Between(100, 1100 - scaledBlockWidth * 3);
+                    const platformX = Phaser.Math.Between(50, 1230 - scaledBlockWidth * 3);
                     
                     // REDUCIDO: Longitud de la plataforma (de 2-4 a 1-2)
-                    const platformLength = Phaser.Math.Between(1, 2);
+                    const platformLength = Phaser.Math.Between(2, 3);
                     
                     // Pequeña variación en Y para que no todas las plataformas estén exactamente a la misma altura
                     const yVariation = Phaser.Math.Between(-30, 30);
@@ -231,10 +231,10 @@ export class Nivel1 extends Phaser.Scene {
             let attempts = 0;
             
             while (!platformPlaced && attempts < 10) {
-                const platformX = Phaser.Math.Between(100, 1100 - scaledBlockWidth * 3);
+                const platformX = Phaser.Math.Between(50,1230 - scaledBlockWidth * 3);
                 const platformY = worldHeight - 150 - Phaser.Math.Between(50, 200);
                 // REDUCIDO: Longitud de la plataforma (de 2-4 a 1-2)
-                const platformLength = Phaser.Math.Between(1, 2);
+                const platformLength = Phaser.Math.Between(2,3);
                 
                 // Verificar si toda la plataforma puede colocarse sin superposiciones
                 let canPlacePlatform = true;
@@ -278,7 +278,7 @@ export class Nivel1 extends Phaser.Scene {
             while (!platformPlaced && attempts < 10) {
                 // Crear una plataforma en cada paso del zigzag
                 // REDUCIDO: Longitud de la plataforma (de 2-4 a 1-2)
-                const platformLength = Phaser.Math.Between(1, 2);
+                const platformLength = Phaser.Math.Between(2,3);
                 
                 // Verificar si toda la plataforma puede colocarse sin superposiciones
                 let canPlacePlatform = true;
@@ -307,7 +307,7 @@ export class Nivel1 extends Phaser.Scene {
                     // Si no podemos colocar la plataforma, intentar con una posición X ligeramente diferente
                     zigzagX += Phaser.Math.Between(-50, 50);
                     // Asegurarse de que zigzagX esté dentro de los límites
-                    zigzagX = Phaser.Math.Clamp(zigzagX, 100, 1100 - platformLength * scaledBlockWidth);
+                    zigzagX = Phaser.Math.Clamp(zigzagX, 50, 1230 - platformLength * scaledBlockWidth);
                 }
                 
                 attempts++;

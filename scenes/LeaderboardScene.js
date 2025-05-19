@@ -154,7 +154,7 @@ export class LeaderboardScene extends Phaser.Scene {
             .setStrokeStyle(2, 0xffffff);
         
         // Encabezados de la tabla
-        this.add.text(340, 180, 'POSICIÓN', {
+        this.add.text(350, 180, 'POSICIÓN', {
             fontSize: '24px',
             fill: '#ffff00',
             fontFamily: 'Arial',
@@ -170,7 +170,7 @@ export class LeaderboardScene extends Phaser.Scene {
             strokeThickness: 3
         }).setOrigin(0, 0.5);
         
-        this.add.text(800, 180, 'PUNTUACIÓN', {
+        this.add.text(750, 180, 'PUNTUACIÓN', {
             fontSize: '24px',
             fill: '#ffff00',
             fontFamily: 'Arial',

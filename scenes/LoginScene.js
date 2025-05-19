@@ -5,6 +5,7 @@ export class LoginScene extends Phaser.Scene {
         this.isRegistering = false;
         this.isAdminLogin = false;
         this.apiUrl = 'http://localhost:3000/api'; // URL base de la API
+        this.activeInput = null; // Para rastrear qué campo está activo
     }
 
     preload() {
@@ -72,7 +73,124 @@ export class LoginScene extends Phaser.Scene {
             this.createAdminButton();
         }
         
+        // Configurar entrada de teclado
+        this.setupKeyboardInput();
+        
         console.log("LoginScene: create completado");
+    }
+    
+    setupKeyboardInput() {
+        // Configurar el evento de teclado para capturar la entrada
+        this.input.keyboard.on('keydown', (event) => {
+            // Solo procesar si hay un campo activo
+            if (this.activeInput) {
+                if (event.keyCode === 8) {
+                    // Tecla de retroceso (borrar)
+                    this.handleBackspace();
+                } else if (event.keyCode === 13) {
+                    // Tecla Enter (confirmar)
+                    this.handleEnter();
+                } else if (event.keyCode === 9) {
+                    // Tecla Tab (cambiar campo)
+                    event.preventDefault();
+                    this.handleTab();
+                } else if (event.keyCode >= 32 && event.keyCode <= 126) {
+                    // Caracteres imprimibles
+                    this.handleCharacter(event.key);
+                }
+            }
+        });
+    }
+    
+    handleBackspace() {
+        if (this.activeInput === this.usernameInput) {
+            // Borrar último carácter del nombre de usuario
+            if (this.usernameText.text.length > 0) {
+                this.usernameText.setText(this.usernameText.text.slice(0, -1));
+            }
+        } else if (this.activeInput === this.passwordInput || this.activeInput === this.confirmPasswordInput) {
+            // Borrar último carácter de la contraseña
+            const inputField = this.activeInput === this.passwordInput ? this.passwordInput : this.confirmPasswordInput;
+            const textField = this.activeInput === this.passwordInput ? this.passwordText : this.confirmPasswordText;
+            
+            if (inputField.realValue && inputField.realValue.length > 0) {
+                inputField.realValue = inputField.realValue.slice(0, -1);
+                textField.setText('*'.repeat(inputField.realValue.length));
+            }
+        }
+    }
+    
+    handleEnter() {
+        // Cambiar al siguiente campo o enviar el formulario
+        if (this.activeInput === this.usernameInput) {
+            this.setActiveInput(this.passwordInput);
+        } else if (this.activeInput === this.passwordInput) {
+            if (this.isRegistering) {
+                this.setActiveInput(this.confirmPasswordInput);
+            } else {
+                // Enviar formulario de login
+                if (this.isAdminLogin) {
+                    this.adminLogin();
+                } else {
+                    this.login();
+                }
+            }
+        } else if (this.activeInput === this.confirmPasswordInput) {
+            // Enviar formulario de registro
+            this.register();
+        }
+    }
+    
+    handleTab() {
+        // Cambiar al siguiente campo
+        if (this.activeInput === this.usernameInput) {
+            this.setActiveInput(this.passwordInput);
+        } else if (this.activeInput === this.passwordInput) {
+            if (this.isRegistering) {
+                this.setActiveInput(this.confirmPasswordInput);
+            } else {
+                this.setActiveInput(this.usernameInput);
+            }
+        } else if (this.activeInput === this.confirmPasswordInput) {
+            this.setActiveInput(this.usernameInput);
+        }
+    }
+    
+    handleCharacter(char) {
+        // Añadir carácter al campo activo
+        if (this.activeInput === this.usernameInput) {
+            // Limitar longitud del nombre de usuario
+            if (this.usernameText.text.length < 20) {
+                this.usernameText.setText(this.usernameText.text + char);
+            }
+        } else if (this.activeInput === this.passwordInput || this.activeInput === this.confirmPasswordInput) {
+            // Limitar longitud de la contraseña
+            const inputField = this.activeInput === this.passwordInput ? this.passwordInput : this.confirmPasswordInput;
+            const textField = this.activeInput === this.passwordInput ? this.passwordText : this.confirmPasswordText;
+            
+            if (!inputField.realValue) {
+                inputField.realValue = '';
+            }
+            
+            if (inputField.realValue.length < 20) {
+                inputField.realValue += char;
+                textField.setText('*'.repeat(inputField.realValue.length));
+            }
+        }
+    }
+    
+    setActiveInput(inputField) {
+        // Desactivar el campo anterior
+        if (this.activeInput) {
+            this.activeInput.setStrokeStyle(2, 0xffffff);
+        }
+        
+        // Activar el nuevo campo
+        this.activeInput = inputField;
+        
+        if (inputField) {
+            inputField.setStrokeStyle(3, 0x00ffff);
+        }
     }
     
     createAdminButton() {
@@ -130,17 +248,17 @@ export class LoginScene extends Phaser.Scene {
     
     createInputFields() {
         // Fondo para el campo de usuario
-        const userFieldBg = this.add.rectangle(640, 260, 400, 60, 0x000000, 0.5)
+        this.usernameInput = this.add.rectangle(640, 260, 400, 60, 0x000000, 0.5)
             .setStrokeStyle(2, 0xffffff);
         
         // Etiqueta para el campo de usuario
-        this.add.text(440, 260, 'Usuario:', {
+        this.add.text(440, 260, ' Usuario:', {
             fontSize: '24px',
             fill: '#fff',
             fontFamily: 'Arial'
         }).setOrigin(0, 0.5);
         
-        // Campo de entrada para el usuario (simulado con texto)
+        // Campo de entrada para el usuario
         this.usernameText = this.add.text(640, 260, '', {
             fontSize: '24px',
             fill: '#fff',
@@ -148,17 +266,17 @@ export class LoginScene extends Phaser.Scene {
         }).setOrigin(0.5);
         
         // Hacer el campo de usuario interactivo
-        userFieldBg.setInteractive();
-        userFieldBg.on('pointerdown', () => {
-            this.promptUsername();
+        this.usernameInput.setInteractive();
+        this.usernameInput.on('pointerdown', () => {
+            this.setActiveInput(this.usernameInput);
         });
         
         // Fondo para el campo de contraseña
-        const passwordFieldBg = this.add.rectangle(640, 340, 400, 60, 0x000000, 0.5)
+        this.passwordInput = this.add.rectangle(640, 340, 400, 60, 0x000000, 0.5)
             .setStrokeStyle(2, 0xffffff);
         
         // Etiqueta para el campo de contraseña
-        this.add.text(440, 340, 'Contraseña:', {
+        this.add.text(440, 340, ' Contraseña:', {
             fontSize: '24px',
             fill: '#fff',
             fontFamily: 'Arial'
@@ -172,19 +290,19 @@ export class LoginScene extends Phaser.Scene {
         }).setOrigin(0.5);
         
         // Hacer el campo de contraseña interactivo
-        passwordFieldBg.setInteractive();
-        passwordFieldBg.on('pointerdown', () => {
-            this.promptPassword();
+        this.passwordInput.setInteractive();
+        this.passwordInput.on('pointerdown', () => {
+            this.setActiveInput(this.passwordInput);
         });
         
         // Si estamos en modo registro, añadir campo para confirmar contraseña
         if (this.isRegistering) {
             // Fondo para el campo de confirmar contraseña
-            const confirmPasswordFieldBg = this.add.rectangle(640, 420, 400, 60, 0x000000, 0.5)
+            this.confirmPasswordInput = this.add.rectangle(640, 420, 400, 60, 0x000000, 0.5)
                 .setStrokeStyle(2, 0xffffff);
             
             // Etiqueta para el campo de confirmar contraseña
-            this.add.text(440, 420, 'Confirmar:', {
+            this.add.text(440, 420, ' Confirmar:', {
                 fontSize: '24px',
                 fill: '#fff',
                 fontFamily: 'Arial'
@@ -198,11 +316,16 @@ export class LoginScene extends Phaser.Scene {
             }).setOrigin(0.5);
             
             // Hacer el campo de confirmar contraseña interactivo
-            confirmPasswordFieldBg.setInteractive();
-            confirmPasswordFieldBg.on('pointerdown', () => {
-                this.promptConfirmPassword();
+            this.confirmPasswordInput.setInteractive();
+            this.confirmPasswordInput.on('pointerdown', () => {
+                this.setActiveInput(this.confirmPasswordInput);
             });
         }
+        
+        // Activar el campo de usuario por defecto
+        this.setActiveInput(this.usernameInput);
+        
+        
     }
     
     createButtons() {
@@ -214,7 +337,7 @@ export class LoginScene extends Phaser.Scene {
             mainButtonY = 500;
             mainButtonText = 'REGISTRARSE';
         } else if (this.isAdminLogin) {
-            mainButtonText = 'ACCEDER COMO ADMIN';
+            mainButtonText = 'ACCESO ADMIN';
         }
         
         const mainButton = this.add.rectangle(640, mainButtonY, 300, 60, 0x00aa00)
@@ -293,7 +416,7 @@ export class LoginScene extends Phaser.Scene {
                 .setStrokeStyle(2, 0xffffff)
                 .setInteractive();
             
-            const guestButtonLabel = this.add.text(640, guestButtonY, 'JUGAR SIN CUENTA', {
+            const guestButtonLabel = this.add.text(640, guestButtonY, 'JUGAR OFFLINE', {
             fontSize: '28px',
             fill: '#fff',
             fontFamily: 'Arial',
@@ -349,40 +472,10 @@ export class LoginScene extends Phaser.Scene {
         }
     }
     
-    promptUsername() {
-        // En un entorno web real, esto sería un campo de entrada HTML
-        // Aquí simulamos con un prompt de JavaScript
-        const username = prompt('Introduce tu nombre de usuario:');
-        if (username !== null) {
-            this.usernameText.setText(username);
-        }
-    }
-    
-    promptPassword() {
-        // Simulamos con un prompt de JavaScript
-        const password = prompt('Introduce tu contraseña:');
-        if (password !== null) {
-            // Mostrar asteriscos en lugar de la contraseña real
-            this.passwordText.setText('*'.repeat(password.length));
-            // Guardar la contraseña real en una propiedad no visible
-            this.passwordText.realPassword = password;
-        }
-    }
-    
-    promptConfirmPassword() {
-        // Simulamos con un prompt de JavaScript
-        const confirmPassword = prompt('Confirma tu contraseña:');
-        if (confirmPassword !== null) {
-            // Mostrar asteriscos en lugar de la contraseña real
-            this.confirmPasswordText.setText('*'.repeat(confirmPassword.length));
-            // Guardar la contraseña real en una propiedad no visible
-            this.confirmPasswordText.realPassword = confirmPassword;
-        }
-    }
     
     async adminLogin() {
         const username = this.usernameText.text;
-        const password = this.passwordText.realPassword || '';
+        const password = this.passwordInput.realValue || '';
         
         if (!username || !password) {
             this.showStatusMessage('Por favor, introduce usuario y contraseña.', '#ff0000');
@@ -427,7 +520,7 @@ export class LoginScene extends Phaser.Scene {
     
     async login() {
         const username = this.usernameText.text;
-        const password = this.passwordText.realPassword || '';
+        const password = this.passwordInput.realValue || '';
         
         if (!username || !password) {
             this.showStatusMessage('Por favor, introduce usuario y contraseña.', '#ff0000');
@@ -475,8 +568,8 @@ export class LoginScene extends Phaser.Scene {
     
     async register() {
         const username = this.usernameText.text;
-        const password = this.passwordText.realPassword || '';
-        const confirmPassword = this.confirmPasswordText.realPassword || '';
+        const password = this.passwordInput.realValue || '';
+        const confirmPassword = this.confirmPasswordInput.realValue || '';
         
         if (!username || !password || !confirmPassword) {
             this.showStatusMessage('Por favor, completa todos los campos.', '#ff0000');
